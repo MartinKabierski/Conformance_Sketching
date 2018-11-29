@@ -1,0 +1,81 @@
+% Copyright 2010 by Ruihong Huang 
+% QP Lab / Humboldt Universitat zu Berlin
+%
+% This file may be distributed and/or modified
+%
+% 1. under the LaTeX Project Public License and/or
+% 2. under the GNU Public License.
+%
+
+\DeclareOptionBeamer{compress}{\beamer@compresstrue}
+\ProcessOptionsBeamer
+
+\newif\if@pdftex \@pdftexfalse
+\newif\if@titlelogo \@titlelogofalse
+
+\ifx\pdfoutput\undefined
+\else
+  \ifx\pdfoutput\relax
+  \else
+    \ifcase\pdfoutput
+    \else
+      \@pdftextrue
+    \fi
+  \fi
+\fi
+
+\if@pdftex
+  \def\hu@logo{hulogo.pdf}
+ \else
+  \def\hu@logo{hulogo.eps}
+\fi
+
+
+\mode<presentation>
+\xdefinecolor{isered}{rgb}{1,0,0}
+\xdefinecolor{iseblue}{rgb}{0,0,1}
+\xdefinecolor{linkblue}{rgb}{1,0,1}
+\xdefinecolor{isegreen}{rgb}{0,0.4,0}
+
+\xdefinecolor{navyblue}{rgb}{0,0,0.8}
+\xdefinecolor{hublue}{rgb}{0,0,0.45} 
+\xdefinecolor{manuh}{rgb}{0.8,0.5, 0.15}
+
+\useoutertheme{HUmetrics}
+\useinnertheme{HUmetrics}
+\setbeamertemplate{title page}
+{
+
+\vspace{2pt}
+  \begin{center}
+  \LARGE\structure{{\color{hublue}\textbf{{\inserttitle}}}}\\
+  \insertsubtitle
+  \vskip5pt
+  \end{center}
+  \begin{columns}[b]
+    \column{0.1\textwidth}
+    \column{0.5\textwidth}%
+      \normalsize{\textbf{\insertauthor}}
+	\vspace{4em}
+    \column{0.4\textwidth}%
+     \begin{center}
+       \if@titlelogo
+       \includegraphics[width=\textwidth]{\title@logo}
+       \else
+       \begin{figure}[H]
+	\includegraphics[width=0.7\textwidth]{\hu@logo}
+	\centering\\
+	\color{hublue!30}
+	\tiny{\insertinstitute}
+	\end{figure}
+       \fi
+    \end{center}
+  \end{columns}
+  \vfill
+  \begin{center}
+  \insertdate
+  \end{center}
+}
+
+\mode
+<all>

@@ -1,0 +1,23 @@
+1. Generalized Conformance Checking by incremental computation
+	-choose trace by trace
+	-solve optimization problem akin to the generalized conformance checking framework
+	-assume new information if L* or M* changed (with respect to some \epsilon-measurement)
+	
+	-problems: 	how should epsilon be set?
+			measure error with respect to original approach?
+
+
+2. Offline, alignemnt-based Conformance Checking by incremental Computation
+	-trace by trace
+	-goal: try to approximate original fitness model as good as possible
+	
+	problems:	what is new information? new alignment, trace, trace variant, \epsilon-similarity
+			can costs be estimated based on known alignment bystitching of costs
+			can one assume how much the fitnes value changes based on new traces
+			can one predict whether model changes further top of the process tree have bigger influences
+
+
+3. Stratified Sampling for incremental Computation (Discovery + Conformance Checking)
+	-try to deduce buckets and bucket sizes
+	-somehow measure entropy of buckets and try to adapt sampling based on entropy
+	-measure convergence speed and compare different methods

@@ -1,0 +1,34 @@
+\mode<presentation>
+
+%\setbeamertemplate{items}[\color{hublue}$\blacktriangleright$]
+%\setbeamertemplate{sections/subsections in toc}[circle]
+\usecaptiontemplate{% controls the layout of captions
+\textrm{\sffamily\footnotesize\insertcaptionname~\insertcaptionnumber:~\insertcaption}% 
+}
+\useitemizeitemtemplate{\color{hublue}$\blacktriangleright$}
+\usesubitemizeitemtemplate{\color{hublue}$\triangleright$}
+\usesubsubitemizeitemtemplate{\color{hublue}--}
+\useenumerateitemtemplate{\color{hublue} \insertenumlabel .}
+
+\useframetitletemplate{%
+\begin{flushleft}
+\Large\structure{\color{hublue}\textbf{\insertframetitle}}
+\par
+\end{flushleft}}
+\setbeamertemplate{navigation symbols}{} 
+
+\newcommand{\weblink}[2]{
+\href{#1}{\textcolor{isered}{#2}}}
+
+\setbeamercolor{block title example}{fg=hublue} 
+\renewenvironment<>{example}{\begin{originalexample}\color{black}}{\end{originalexample}}
+\setbeamercolor{block title theorem}{fg=hublue}
+\renewenvironment<>{theorem}{\begin{originaltheorem}\color{black}}{\end{originaltheorem}}
+\setbeamercolor{block title}{fg=hublue}
+%
+
+\mode
+<all>
+
+
+

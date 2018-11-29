@@ -1,0 +1,36 @@
+\documentclass[tikz]{standalone}
+\usepackage{tikz}
+\usepackage{amssymb}
+\usetikzlibrary{positioning}
+\usetikzlibrary{calc}
+\usetikzlibrary{arrows,shapes,snakes,automata,petri}
+\begin{document}
+\begin{tikzpicture}
+\node[](startA) at (-0.75,0){};
+\node[](startB) at (-0.75,-0.5){};
+\node[](startD) at (-0.75,-1){};
+\node[](startE) at (-0.75,-2){};
+\node[](A) at (0,0){A};
+\node[](B) at (0,-0.5){B};
+\node[](C) at (1,-0.5){C};
+\node[](D) at (0,-1){D};
+\node[](E) at (0,-2){E};
+\node[](endA) at (0.75,0){};
+\node[](endC) at (1.75,-0.5){};
+\node[](endD) at (0.75,-1){};
+\node[](endE) at (0.75,-2){};
+
+\path
+(startA) edge[-latex]node{} (A)
+(startB) edge[-latex]node{} (B)
+(startD) edge[-latex]node{} (D)
+(startE) edge[-latex]node{} (E)
+(B) edge[-latex]node{} (C)
+(D) edge[-latex, bend right]node{} (E)
+(E) edge[-latex, bend right]node{} (D)
+(A) edge[-latex]node{} (endA)
+(C) edge[-latex]node{} (endC)
+(D) edge[-latex]node{} (endD)
+(E) edge[-latex]node{} (endE);
+\end{tikzpicture}
+\end{document}

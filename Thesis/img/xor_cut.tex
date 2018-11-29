@@ -1,0 +1,35 @@
+\documentclass[tikz]{standalone}
+\usepackage{tikz}
+\usepackage{amssymb}
+\usetikzlibrary{positioning}
+\usetikzlibrary{calc}
+\usetikzlibrary{arrows,shapes,snakes,automata,petri}
+\begin{document}
+\begin{tikzpicture}
+\node[](startA) at (-0.75,0){};
+\node[](startD) at (-0.25,-1){};
+\node[](A) at (0,0){A};
+\node[](B) at (1,0){B};
+\node[](C) at (2,0.0){C};
+\node[](D) at (0.5,-1){D};
+\node[](E) at (1.5,-0.7){E};
+\node[](F) at (1.5,-1.3){F};
+\node[](endC) at (2.75,0){};
+\node[](endE) at (2.25,-0.7){};
+\node[](endF) at (2.25,-1.3){};
+
+\draw[dashed](-0.75,-0.4)--(2.75,-0.4);
+
+\path
+(startA) edge[-latex]node{} (A)
+(startD) edge[-latex]node{} (D)
+(A) edge[-latex]node{} (B)
+(B) edge[-latex]node{} (C)
+
+(D) edge[-latex]node{} (E)
+(D) edge[-latex]node{} (F)
+(C) edge[-latex]node{} (endC)
+(E) edge[-latex]node{} (endE)
+(F) edge[-latex]node{} (endF);
+\end{tikzpicture}
+\end{document}

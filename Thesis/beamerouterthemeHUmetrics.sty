@@ -1,0 +1,45 @@
+% Copyright 2009 by Ruihong Huang 
+% QP Lab/Humboldt Univeristat zum Berlin
+%
+% This file may be distributed and/or modified
+%
+% 1. under the LaTeX Project Public License and/or
+% 2. under the GNU Public License.
+%
+% See the file doc/licenses/LICENSE for more details.
+
+\mode<presentation>
+
+%\Requirepackage{graphicx}
+\setbeamercolor*{author in head/foot}{parent=palette tertiary}
+
+\setbeamercolor*{title in head/foot}{parent=palette secondary}
+\setbeamercolor*{date in head/foot}{parent=palette primary}
+\setbeamercolor*{institute in head/foot}{parent=palette tertiary}
+\setbeamercolor*{subtitle in head/foot}{parent=palette tertiary}
+
+\setbeamercolor*{section in head/foot}{parent=palette tertiary}
+\setbeamercolor*{subsection in head/foot}{parent=palette primary}
+%\setbeamerfont{frametitle}{size*={36pt}{5pt}}
+\defbeamertemplate*{footline}{HUmetrics theme}
+{
+%\hspace{0.02\textwidth}
+  \raisebox{0.75cm}{
+  \parbox{0.95\textwidth}{
+\footnotesize{\color{hublue}{ ~ \insertshorttitle\  \ \leavevmode\leaders\hrule height3.2pt depth-2.8pt\hfill\kern2pt}%
+\color{hublue!30} \insertframenumber{$\slash$\inserttotalframenumber}
+}}
+}
+}
+\defbeamertemplate*{headline}{HUmetrics theme}
+{
+\hspace{0.025\textwidth}\raisebox{-0.75cm}{\parbox{0.95\textwidth}{%
+\color{hublue}{%
+\footnotesize{\insertsection\ \insertsubsection \ \leavevmode\leaders\hrule height3.2pt depth-2.8pt\hfill\kern0pt\ }%
+\raisebox{-10pt}{\includegraphics[width=1cm]{\hu@logo}}%
+}}}%
+}%
+\setbeamersize{text margin left=1em,text margin right=1em}
+
+\mode
+<all>

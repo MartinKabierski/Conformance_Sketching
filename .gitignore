@@ -1,0 +1,11 @@
+.metadata
+IncrementalConformanceChecker/.classpath
+IncrementalConformanceChecker/.project
+.svn
+.settings
+bin
+*.class
+# local Test projects
+Testspace
+
+\.recommenders/
