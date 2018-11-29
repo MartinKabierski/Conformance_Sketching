@@ -1,8 +1,0 @@
-So on to the new Procedure:
-As seen in the paper, the final result does not care about the structure of the decomposed net as long as the total sum of subalignments for each trace was on total border agreement for the corresponding trace, i.e. for some traces the subalignments have been calculated on another decomposition than for a different trace. We could exploit that as follows:
-We have the totally decomposed net, then pick a trace, and calculate the subalignments. If we do not have total border agreement we recompose it untial all subalginments for that trace line up.
-Then we pick the next trace, for this one we begin again with the completely decomposed net and repeat.
-This process is repeated for our initial set of traces. After this we pick a new trace, check the trace edit distance to all already computed traces, then project it onto the specific net decomposition for the trace it is closest and assign the costs to the subsections it
-
-
-I therefore propose another solution, and I would like to know your opinion on firstly: do you think my claims are correct? Secondly: does my new idea sound reasonable to you?
