@@ -99,7 +99,16 @@ public class ApproxFitnessReplayer implements IncrementalReplayer {
 		//if initial size reached, approximate trace fitness
 		if (this.parameters.getInitialSize()<=traceFitnessHistory.keys().size()) {
 			double estimatedFitness=estimateFitness(currentTraceAsLog);
-			if(estimatedFitness>this.parameters.getK()) {
+			
+			//if not k-similar, raplay trace on petri net
+			//if(estimatedFitness<0) {
+			//	return replayTraceOnNet(currentTraceAsLog, net, mapping);
+			//}
+
+			//k-similarity check - depends on difference of traces and maximal difference
+			double x=(estimatedFitness/(currentTraceAsLog.get(0).size()+traceFitnessHistory.getPetriNetShortestPath()));
+			//
+			if(x>this.parameters.getK()) {
 				return replayTraceOnNet(currentTraceAsLog, net, mapping);
 			}
 			else return estimatedFitness;
@@ -112,14 +121,22 @@ public class ApproxFitnessReplayer implements IncrementalReplayer {
 	
 	private double estimateFitness(XLog currentTraceAsLog) {
 		double minRawFitness=Integer.MAX_VALUE;
+		double minDist=0;
+		TraceReplayResult mostSimilar = null;
 		XTrace trace=currentTraceAsLog.get(0);
 		for (TraceReplayResult alignmentInfo : traceFitnessHistory.values()) {
 			double distance=new TraceEditDistance(trace,alignmentInfo.getTrace()).getDistance();
 			double estRawFitness=distance+alignmentInfo.getRawFitness();
 			if(estRawFitness<minRawFitness) {
 				minRawFitness=estRawFitness;
+				minDist=distance;
+				mostSimilar = alignmentInfo;
 			}
 		}
+		//check for k-similarity - if k=0, all get rejected, for k=1 all are approximated
+		//if(minDist/(trace.size()+mostSimilar.getTrace().size())>this.parameters.getK()) {
+		//	return -1;
+		//}
 
 		int maximalPossibleCost=(int) (currentTraceAsLog.get(0).size()+traceFitnessHistory.getPetriNetShortestPath());
 		if(minRawFitness>maximalPossibleCost) {

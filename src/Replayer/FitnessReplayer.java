@@ -54,6 +54,8 @@ public class FitnessReplayer implements IncrementalReplayer {
 		int nThreads = 2;
 		int costUpperBound = Integer.MAX_VALUE;
 		
+		
+		//TODO: Han all these things should only be computed once per log, not per trace
 		XEventClassifier eventClassifier=XLogInfoImpl.STANDARD_CLASSIFIER;
 		XLogInfo summary = XLogInfoFactory.createLogInfo(log, eventClassifier);
 		XEventClasses classes = summary.getEventClasses();
@@ -82,30 +84,62 @@ public class FitnessReplayer implements IncrementalReplayer {
 		TraceReplayResult result = new TraceReplayResult(this.traceFitnessHistory.convertToString(trace),trace,trace.size(),false,false,false,rawFitness,fitness,null);
 		
 		
-		//information predicate
+		// check new information predicate on conformance result
 		double oldHistoryFitness=traceFitnessHistory.getFitness();
 		traceFitnessHistory.put(result.getActivities(), result);
 		double newHistoryFitness=traceFitnessHistory.getFitness();
 		
-		if(Math.abs(oldHistoryFitness-newHistoryFitness)>iccparameters.getEpsilon()) {
-			return true;
+		// update all new information predicates for internal sample quality check
+		if (iccparameters.isCheckInternalQuality()) {
+			iccparameters.getInternalQualityCheckContainer().addTraceToDistributionsAndStoreOld(trace);
+			
+			// check if new information in conformance result
+			if (foundNewInformation(oldHistoryFitness, newHistoryFitness)) {
+				return true;
+			}
+			
+			// check if new information in attributes
+			if (iccparameters.getInternalQualityCheckContainer().maxIncrementalDistributionDistance() > iccparameters.getEpsilon()) {
+				iccparameters.getInternalQualityCheckContainer().wasUsed();
+				return true;
+			}
 		}
-		else return false;
+		
+		// check if new information in conformance result
+		return foundNewInformation(oldHistoryFitness, newHistoryFitness);
 	}
 
 	public boolean incrementAndCheckPredicate(XTrace trace) {
 		double oldHistoryFitness=traceFitnessHistory.getFitness();
 		this.traceFitnessHistory.incrementMultiplicity(this.traceFitnessHistory.convertToString(trace));
 		double newHistoryFitness=traceFitnessHistory.getFitness();
-		if(Math.abs(oldHistoryFitness-newHistoryFitness)>iccparameters.getEpsilon()) {
-			return true;
+		
+		// update all new information predicates for internal sample quality check
+		if (iccparameters.isCheckInternalQuality()) {
+			iccparameters.getInternalQualityCheckContainer().addTraceToDistributionsAndStoreOld(trace);
+
+			// check if new information in conformance result
+			if (foundNewInformation(oldHistoryFitness, newHistoryFitness)) {
+				return true;
+			}
+			
+			// check if new information in attributes
+			if (iccparameters.getInternalQualityCheckContainer().maxIncrementalDistributionDistance() > iccparameters.getEpsilon()) {
+				iccparameters.getInternalQualityCheckContainer().wasUsed();
+				return true;
+			}
 		}
-		else return false;
+		// check if new information in conformance result
+		return foundNewInformation(oldHistoryFitness, newHistoryFitness);
 	}
 	
 
 	public ReplayResultsContainer getResult() {
 		return traceFitnessHistory;
+	}
+	
+	private boolean foundNewInformation(double oldValue, double newValue) {
+		return Math.abs(oldValue - newValue)>iccparameters.getEpsilon();
 	}
 	
 	
@@ -131,4 +165,6 @@ public class FitnessReplayer implements IncrementalReplayer {
 		return initMarking;
 	}
 
+	
+	
 }

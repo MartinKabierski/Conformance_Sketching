@@ -11,11 +11,7 @@
     <dependencies defaultconf="default">
        <dependency org="prom" name="ProM-Plugins" rev="latest" changing="true" transitive="true" />
        <dependency org="prom" name="Log" rev="latest" changing="true" transitive="true" />
-       <dependency org="prom" name="InductiveMiner" rev="latest" changing="true" transitive="true" />
        <dependency org="prom" name="Alignment" rev="latest" changing="true" transitive="true" />       
-       <dependency org="prom" name="PNetReplayer" rev="latest" changing="true" transitive="true" />  
-       <dependency org="prom" name="DecomposedReplayer" rev="latest" changing="true" transitive="true" />  
-       
-
-    </dependencies>
+       <dependency org="prom" name="PNetReplayer" rev="latest" changing="true" transitive="true" />
+      </dependencies>
 </ivy-module>

@@ -1,6 +1,7 @@
 package Ressources;
 
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
@@ -11,9 +12,11 @@ import com.google.common.collect.Multiset;
 import com.google.common.collect.TreeMultiset;
 
 //TODO change to Multibag?
+//TODO Han: maybe create different subclasses for each of the three replay result types? Also for TraceReplayResult
 public class ReplayResultsContainer{
 
 	Map<String, TraceReplayResult> alignmentResults;
+	Map<XTrace, TraceReplayResult> traceResults;
 	private Double petriNetShortestPath;
 	Double logFitness;
 	
@@ -47,6 +50,14 @@ public class ReplayResultsContainer{
 	public void put(String key, TraceReplayResult value) {
 		alignmentResults.put(key, value);
 	}
+	
+	public void addTraceResult(XTrace trace, TraceReplayResult result) {
+		this.put(convertToString(trace), result);
+		if (traceResults == null) {
+			traceResults = new HashMap<>();
+		}
+		traceResults.put(trace, result);
+	}
 
 	public void incrementMultiplicity(String key) {
 		alignmentResults.get(key).multiplicity++;
@@ -78,10 +89,33 @@ public class ReplayResultsContainer{
 		return fitness/totalTraces;
 	}
 	
+	// TODO update upon insertion
 	public Multiset<String> getAsynchMoves(){
 		Multiset<String> toReturn = TreeMultiset.create();
 		for (TraceReplayResult result : this.alignmentResults.values()) {
-			toReturn.addAll(result.getAsynchMoves());
+			for (int i=0;i<result.multiplicity;i++) {
+				toReturn.addAll(result.getAsynchMoves());
+			}
+		}
+		return toReturn;
+	}
+	
+	// TODO update upon insertion
+	public Map<String, Set<String>> getViolatingResources() {
+		Map<String, Set<String>> toReturn = new HashMap<>();
+		if (traceResults == null) {
+			traceResults = new HashMap<>();
+		}
+		for (TraceReplayResult result : this.traceResults.values()) {
+			Map<String, Set<String>> traceMap = result.getViolatingResources();
+			for (String act : traceMap.keySet()) {
+				if (toReturn.containsKey(act)) {
+//					System.out.println("act" + act + " tm " + traceMap + " tr: " + toReturn);
+					toReturn.get(act).addAll(traceMap.get(act));
+				} else {
+					toReturn.put(act, traceMap.get(act));
+				}
+			}
 		}
 		return toReturn;
 	}

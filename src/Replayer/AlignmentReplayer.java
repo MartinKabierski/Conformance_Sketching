@@ -1,8 +1,6 @@
 package Replayer;
 
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
+import java.util.concurrent.ExecutionException;
 
 import org.deckfour.xes.classification.XEventClasses;
 import org.deckfour.xes.classification.XEventClassifier;
@@ -19,6 +17,7 @@ import org.processmining.models.graphbased.directed.petrinet.PetrinetGraph;
 import org.processmining.models.graphbased.directed.petrinet.elements.Place;
 import org.processmining.models.semantics.petrinet.Marking;
 import org.processmining.plugins.connectionfactories.logpetrinet.TransEvClassMapping;
+import org.processmining.plugins.petrinet.replayresult.PNRepResult;
 import org.processmining.plugins.replayer.replayresult.SyncReplayResult;
 
 import com.google.common.collect.Multiset;
@@ -27,9 +26,9 @@ import com.google.common.collect.TreeMultiset;
 import Ressources.IccParameters;
 import Ressources.ReplayResultsContainer;
 import Ressources.TraceReplayResult;
+import nl.tue.alignment.Progress;
 import nl.tue.alignment.Replayer;
 import nl.tue.alignment.ReplayerParameters;
-import nl.tue.alignment.TraceReplayTask;
 import nl.tue.alignment.algorithms.ReplayAlgorithm.Debug;
 /**
  * 
@@ -78,40 +77,20 @@ public class AlignmentReplayer implements IncrementalReplayer {
 		
 		ReplayerParameters parameters = new ReplayerParameters.Default(nThreads, costUpperBound, Debug.NONE);
 		Replayer replayer = new Replayer(parameters, (Petrinet) net, initialMarking, finalMarking, classes, mapping, false);
-
-		// timeout per trace in milliseconds
-		int timeoutMilliseconds = 10 * 1000;
-		// preprocessing time to be added to the statistics if necessary
-		long preProcessTimeNanoseconds = 0;
 		
-		ExecutorService service = Executors.newFixedThreadPool(parameters.nThreads);
-		
-		@SuppressWarnings("unchecked")
-		Future<TraceReplayTask>[] futures = new Future[log.size()];
-
-		for (int i = 0; i < log.size(); i++) {
-			// Setup the trace replay task
-			TraceReplayTask task = new TraceReplayTask(replayer, parameters, log.get(i), i, timeoutMilliseconds,
-					parameters.maximumNumberOfStates, preProcessTimeNanoseconds);
-
-			// submit for execution
-			futures[i] = service.submit(task);
+		PNRepResult pnresult=null;
+		try {
+			pnresult = replayer.computePNRepResult(Progress.INVISIBLE, log);
+			
+		} catch (InterruptedException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		} catch (ExecutionException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
 		}
-		// initiate shutdown and wait for termination of all submitted tasks.
-		service.shutdown();
 		
-		// obtain the results one by one.
-		for (int i = 0; i < log.size(); i++) {
-
-			TraceReplayTask result;
-			try {
-				result = futures[i].get();
-			} catch (Exception e) {
-				// execution os the service has terminated.
-				assert false;
-				throw new RuntimeException("Error while executing replayer in ExecutorService. Interrupted maybe?", e);
-			}
-			SyncReplayResult replayResult = result.getSuccesfulResult();
+		for(SyncReplayResult replayResult : pnresult) {
 			for (int j=0;j<replayResult.getStepTypes().size();j++) {
 				if(replayResult.getStepTypes().get(j).toString().equals("Log move") || replayResult.getStepTypes().get(j).toString().equals("Model move")) {
 					//System.out.println(replayResult.getNodeInstance().get(j).toString());
@@ -142,10 +121,14 @@ public class AlignmentReplayer implements IncrementalReplayer {
 				relativeFrequencyInOld=0.0;
 			}
 			else relativeFrequencyInOld = (double)oldAsynchMoves.count(activity)/(double)oldAsynchMoves.size();
-			double dif=Math.abs(relativeFrequencyInOld-relativeFrequencyInNew);
-			
+			double dif=Math.pow(relativeFrequencyInOld-relativeFrequencyInNew,2);
+			//double dif=Math.abs(relativeFrequencyInOld-relativeFrequencyInNew);
+
 			difference+=dif;
-		}		
+		}
+		difference=Math.sqrt(difference);
+		//normalize difference so that it is in range [0-1]
+		////difference=difference/newAsynchMoves.elementSet().size();
 		if(difference>this.iccParameters.getEpsilon()) {
 			return true;
 		}
@@ -167,9 +150,13 @@ public class AlignmentReplayer implements IncrementalReplayer {
 				relativeFrequencyInOld=0.0;
 			}
 			else relativeFrequencyInOld = (double)oldAsynchMoves.count(activity)/(double)oldAsynchMoves.size();
-			double dif=Math.abs(relativeFrequencyInOld-relativeFrequencyInNew);
-			difference+=dif;		
+			double dif=Math.pow(relativeFrequencyInOld-relativeFrequencyInNew,2);
+			//double dif=Math.abs(relativeFrequencyInOld-relativeFrequencyInNew);
+			difference+=dif;
 		}
+		//System.out.print(difference+" ");
+		difference=Math.sqrt(difference);	
+		////difference=difference/newAsynchMoves.elementSet().size();
 		if(difference>this.iccParameters.getEpsilon()) {
 			return true;
 		}

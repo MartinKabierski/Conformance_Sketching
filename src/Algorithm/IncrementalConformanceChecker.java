@@ -1,12 +1,12 @@
 package Algorithm;
 
+import java.util.List;
 import java.util.Random;
 
 import org.deckfour.xes.model.XAttributeMap;
 import org.deckfour.xes.model.XLog;
 import org.deckfour.xes.model.XTrace;
 import org.processmining.contexts.uitopia.UIPluginContext;
-import org.processmining.decomposedreplayer.algorithms.RecomposingReplayAlgorithm;
 import org.processmining.models.graphbased.directed.petrinet.PetrinetGraph;
 import org.processmining.plugins.connectionfactories.logpetrinet.TransEvClassMapping;
 
@@ -17,7 +17,7 @@ import Ressources.ReplayResultsContainer;
 import Utils.ReplayerFactory;
 import Utils.ThresholdCalculator;
 //TODO function returns ICCResult. Should return AlignmentReplayResult???
-public class IncrementalConformanceChecker extends RecomposingReplayAlgorithm{
+public class IncrementalConformanceChecker {
 	
 	ReplayResultsContainer alignmentContainer;
 	ReplayerFactory replayerFactory;
@@ -41,6 +41,7 @@ public class IncrementalConformanceChecker extends RecomposingReplayAlgorithm{
 		long startingTimeInMillis=System.currentTimeMillis();
 		Random randNrGenerator=new Random();
 		int minimalSampleSize= calculateMinimalSampleSize(iccParameters);
+		System.out.println(minimalSampleSize);
 		//TODO build log from log, not insert trace into empty log
 		XAttributeMap logAttributes=log.getAttributes();
 
@@ -49,6 +50,10 @@ public class IncrementalConformanceChecker extends RecomposingReplayAlgorithm{
 			XTrace currentTrace= sampleNextTrace(log, randNrGenerator);
 			pickedTraceCount++;
 	
+			if (pickedTraceCount % 500 == 0) {
+				System.out.println(pickedTraceCount + " traces done");
+			}
+			
 			boolean containsInformation=false;
 			if (this.replayer.TraceVariantKnown(currentTrace)){
 				containsInformation=this.replayer.incrementAndCheckPredicate(currentTrace);
@@ -58,6 +63,11 @@ public class IncrementalConformanceChecker extends RecomposingReplayAlgorithm{
 				containsInformation=this.replayer.abstractAndCheckPredicate(currentTrace, additionalInformation);
 			}
 						
+			// update attributes for external quality checking
+			if (iccParameters.isCheckExternalQuality()) {
+				iccParameters.getExternalQualityCheckContainer().addTraceToDistributions(currentTrace);
+			}
+			
 			//updateExperimentCounter
 			if(!containsInformation) {
 				consecSamplesWithoutChange++;
@@ -65,6 +75,22 @@ public class IncrementalConformanceChecker extends RecomposingReplayAlgorithm{
 			else consecSamplesWithoutChange=0;			
 			//System.out.println(consecSamplesWithoutChange);
 			if (consecSamplesWithoutChange>=minimalSampleSize) {
+				
+				if (iccParameters.isCheckExternalQuality()) {
+					// perform external sample quality assessment
+					int validationStart = 1;
+					int validationEnd = validationStart + pickedTraceCount;
+					if (validationEnd < log.size()) {
+						// TODO: actually should pick traces at random, right?
+						// TODO: make size of validation log a parameter
+						List<XTrace> validationSample = log.subList(validationStart, validationEnd);
+						if (iccParameters.getExternalQualityCheckContainer().hasSignificantDifference(
+								validationSample, iccParameters.getAlpha())) {
+							consecSamplesWithoutChange=0;
+							iccParameters.getExternalQualityCheckContainer().wasUsed();
+						}
+					}
+				}
 				long endingTimeInMillis=System.currentTimeMillis();
 				long totalTime=endingTimeInMillis-startingTimeInMillis;
 				if(iccParameters.getGoal().equals("fitness")) {

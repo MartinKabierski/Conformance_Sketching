@@ -1,6 +1,11 @@
 package Ressources;
 
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import org.deckfour.xes.model.XTrace;
+import org.processmining.plugins.petrinet.replayresult.StepTypes;
 
 import com.google.common.collect.Multiset;
 
@@ -17,6 +22,8 @@ public class TraceReplayResult {
 	private double rawFitness;
 	double fitness;
 	private Multiset<String> asynchMoves;
+	private Map<String, Set<String>> violatingResources;
+	private List<StepTypes> stepTypes;
 	
 	//maybe reference trace and it's costs
 
@@ -63,6 +70,22 @@ public class TraceReplayResult {
 
 	public void setAsynchMoves(Multiset<String> asynchMoves) {
 		this.asynchMoves = asynchMoves;
+	}
+	
+	public void setViolatingResources(Map<String, Set<String>> violatingResources) {
+		this.violatingResources = violatingResources;
+	}
+	
+	public void setStepTypes(List<StepTypes> stepTypes) {
+		this.stepTypes = stepTypes;
+	}
+	
+	public List<StepTypes> getStepTypes() {
+		return stepTypes;
+	}
+	
+	public Map<String, Set<String>> getViolatingResources() {
+		return violatingResources;
 	}
 	
 }
