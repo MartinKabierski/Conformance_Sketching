@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<packages>
+  <package author="Eric Verbeek" auto="false" desc="Workshop" hasPlugins="true" license="LGPL" logo="http://www.promtools.org/prom6/packages/prom_subtitle_hat_300.png" name="Workshop" org="Eindhoven University of Technology" os="all" url="http://www.promtools.org/prom6/packages/Workshop/Workshop-6.1.93-all.zip" version="6.1.93">
+    <dependency name="Log" />
+  </package>
+</packages>
