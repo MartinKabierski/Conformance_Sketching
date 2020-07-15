@@ -5,7 +5,7 @@ This repository contains the source code, the end-user plugins and the evaluatio
 
 The approaches provided include:
 * Three conformance measures: Fitness, deviating activities and non-conformant resource attributes
-* Event-log sampling with statistical completeness guarantees#
+* Event-log sampling with statistical completeness guarantees
 * Methods for the approximation of said conformance measures
 * Quality retainment approaches to further stabilize the sample-based conformance result.
 
@@ -16,13 +16,13 @@ The methods are implemented as end-user plugins for the [Process Mining Toolkit]
 1. Clone this repo (for help see this [tutorial](https://help.github.com/articles/cloning-a-repository/)).
 2. Install the [Eclipse IDE](https://www.eclipse.org/downloads/) and import th IncrementalPM directory as a new project.
 3. In Eclipse, install [Apache IvyDE](https://ant.apache.org/ivy/ivyde/), and resolve all dependencies of the imported project.
-4. You are done. You may run your local copy of ProM using either "ProM Package Manager (IncrementalPM).launch" for the package Manager or "ProM with UITopia (IncrementalPM).launch" for ProM itself.
+4. You are done - you may run your local copy of ProM using either "ProM Package Manager (IncrementalPM).launch" for the package Manager or "ProM with UITopia (IncrementalPM).launch" for ProM itself.
 
 For further instructions on the usage of ProM itself, or the deployment using other IDE's than Eclipse, please see the [ProM Getting started Page](http://www.promtools.org/doku.php?id=gettingstarted:start) or consider contacting the [ProM Forum](https://www.win.tue.nl/promforum/categories).
 
 ### Running the plugins
 In the project, two plugins are provided:
-* "Check global Conformance with Incremental Conformance Checker" - conducts a run of the sample-based conformance checking algorithm
+* "Check global Conformance wiIncremental Conformance Checker" - conducts a run of the sample-based conformance checking algorithm
 * "Evaluate Incremental Conformance Checker" - conducts the controlled experiments used for evaluation of the implemented approaches. The set of result files used in the paper, as well as the scripts for the creation of the plots are provided in the directory "evaluation_results".
 
 ## Acknowledgements
