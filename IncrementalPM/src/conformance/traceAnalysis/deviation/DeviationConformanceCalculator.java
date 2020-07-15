@@ -12,14 +12,18 @@ import ressources.GlobalConformanceResult;
 public class DeviationConformanceCalculator implements IncrementalConformanceCalculator<Map<String, Double>>{
 	protected double cnt;
 	protected Map<String,Double> deviationsAbsolute;
+	protected double noTraces;
+	protected Map<String, Double> occurenceInTraces;
 	
 	public DeviationConformanceCalculator() {
 		this.cnt=0;
 		this.deviationsAbsolute = new ConcurrentHashMap<String, Double>();
+		this.occurenceInTraces = new ConcurrentHashMap<String, Double>();
 	}
 	
 	public double update(Map<String, Double> conformanceResult) {
 		//update internal state and get local copy
+		//System.out.println("Updating using:" +conformanceResult);
 		Map<String, Double> localDeviationsAbsolute= new HashMap<String, Double>();
 		//Map<String, Double> localDeviationsRelative= new HashMap<String, Double>();
 		Double localCnt=new Double(0);
@@ -33,6 +37,8 @@ public class DeviationConformanceCalculator implements IncrementalConformanceCal
 			newDeviationsRelative.put(activity.getKey(), (activity.getValue())/(localCnt));
 			oldDeviationsRelative.put(activity.getKey(), (activity.getValue()-conformanceResult.getOrDefault(activity.getKey(), 0.0))/(localCnt-conformanceResultSize));
 		}
+		//System.out.println("Updated total Deviations:" + this.deviationsAbsolute);
+		//System.out.println();
 		//return change in states
 		return calculateDistance(oldDeviationsRelative, newDeviationsRelative);
 	}
@@ -47,8 +53,12 @@ public class DeviationConformanceCalculator implements IncrementalConformanceCal
 
 	private synchronized void updateAndGetState(Map<String, Double> localDeviationsAbsolute, Double localCnt, Map<String, Double> conformanceResult, Double conformanceSize) {
 		//System.out.println("Updating internal state");
+		noTraces++;
+		//System.out.println("Incorporating Deviations: "+conformanceResult);
 		for (Entry<String, Double> entry : conformanceResult.entrySet()) {
 			this.cnt = this.cnt + entry.getValue();
+			this.occurenceInTraces.put(entry.getKey(), this.occurenceInTraces.getOrDefault(entry.getKey(), 0.0)+1.0);
+
 			conformanceSize=conformanceSize+entry.getValue();
 			this.deviationsAbsolute.put(entry.getKey(), entry.getValue()+this.deviationsAbsolute.getOrDefault(entry.getKey(), 0.0));
 			localDeviationsAbsolute.put(entry.getKey(), entry.getValue()+this.deviationsAbsolute.getOrDefault(entry.getKey(), 0.0));
@@ -87,9 +97,11 @@ public class DeviationConformanceCalculator implements IncrementalConformanceCal
 		for(Entry<String, Double> activity : newDeviations.entrySet()) {
 			double relativeFrequencyInNew = activity.getValue();
 			double relativeFrequencyInOld = oldDeviations.getOrDefault(activity.getKey(),0.0);
-			difference+=Math.pow(relativeFrequencyInOld-relativeFrequencyInNew,2);
+			//difference+=Math.pow(relativeFrequencyInOld-relativeFrequencyInNew,2);
+			difference+=Math.abs(relativeFrequencyInOld-relativeFrequencyInNew);
 		}
-		return Math.sqrt(difference);
+		return difference;
+		//return Math.sqrt(difference);
 	}
 	
 	protected double getCnt() {
@@ -99,11 +111,19 @@ public class DeviationConformanceCalculator implements IncrementalConformanceCal
 	
 	public synchronized GlobalConformanceResult get() {
 		GlobalConformanceResult result = new GlobalConformanceResult();
-		Map<String, Double> deviations = new HashMap<String, Double>();
+		Map<String, Double> deviationsRelative = new HashMap<String, Double>();
+		Map<String, Double> deviationsAbsolute = new HashMap<String, Double>();
 		for (Entry<String, Double> entry : this.deviationsAbsolute.entrySet()) {
-			deviations.put(entry.getKey(), entry.getValue()/this.cnt);
+			deviationsAbsolute.put(entry.getKey(), entry.getValue());
+			deviationsRelative.put(entry.getKey(), entry.getValue()/this.cnt);
 		}
-		result.setDeviations(deviations);
+		result.setNoDeviations((int)this.cnt);
+		result.setDeviationsRelative(deviationsRelative);
+		result.setDeviationsAbsolute(deviationsAbsolute);
+		Map<String, Double> occurenceInTraces = new HashMap<String, Double>();
+		for (Entry<String, Double> entry : this.occurenceInTraces.entrySet())
+			occurenceInTraces.put(entry.getKey(), entry.getValue());
+		result.setOccurencePerTrace(occurenceInTraces);
 		return result;
 	}
 }

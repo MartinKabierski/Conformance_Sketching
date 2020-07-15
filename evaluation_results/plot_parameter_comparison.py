@@ -21,9 +21,9 @@ def main():
         plt.rcParams.update(font)
 
         #read in data frame
-        bpi2012=pd.read_csv("./results/results10/BPI_Challenge_2012_fitness.csv", sep=';')
-        bpi2012approx=pd.read_csv("./results/results10/BPI_Challenge_2012_fitnessApprox.csv", sep=';')
-        bpi2012_orig=pd.read_csv("./results/results10/BPI_Challenge_2012_baseline.csv", sep=';')
+        bpi2012=pd.read_csv("./results/BPI_Challenge_2012_fitness.csv", sep=';')
+        bpi2012approx=pd.read_csv("./results/BPI_Challenge_2012_fitnessApprox.csv", sep=';')
+        bpi2012_orig=pd.read_csv("./results/BPI_Challenge_2012_baseline.csv", sep=';')
         bpi2012_orig_mean=bpi2012_orig["fitness"].mean()
         bpi2012_orig_time_mean=bpi2012_orig["time"].mean()
 

@@ -10,12 +10,14 @@ import org.deckfour.xes.model.XTrace;
 import org.processmining.models.graphbased.directed.petrinet.PetrinetGraph;
 import org.processmining.plugins.connectionfactories.logpetrinet.TransEvClassMapping;
 import org.processmining.plugins.petrinet.replayresult.PNRepResult;
+import org.processmining.plugins.petrinet.replayresult.StepTypes;
 import org.processmining.plugins.replayer.replayresult.SyncReplayResult;
 
 import conformance.traceAnalysis.IncrementalTraceAnalyzer;
 import conformance.traceAnalysis.TraceEditDistance;
 import ressources.IccParameter;
 import ressources.TraceAnalysisResult;
+import utils.TraceRepresentations;
 /**
  * 
  * @author Martin Bauer
@@ -36,12 +38,11 @@ public class DeviationAnalyzer extends IncrementalTraceAnalyzer<Map<String, Doub
 		for(SyncReplayResult replaySteps : replayResult) {
 			//System.out.println(replaySteps.getStepTypes().toString());
 			for (int j=0;j<replaySteps.getStepTypes().size();j++) {
-				//System.out.println(replaySteps.getStepTypes().get(j));
-				if(replaySteps.getStepTypes().get(j).toString().equals("Model move")||replaySteps.getStepTypes().get(j).toString().equals("Log move")) {
+				if(replaySteps.getStepTypes().get(j)== StepTypes.L||replaySteps.getStepTypes().get(j)==StepTypes.MREAL) {
+					//deviations.put(replaySteps.getNodeInstance().get(j).toString(),deviations.getOrDefault(replaySteps.getNodeInstance().get(j).toString(), 0.0)+1.0);
 					//System.out.println(mapping.toString());
 					//System.out.println(replaySteps.getStepTypes().get(j).toString()+" , "+replaySteps.getNodeInstance().get(j).toString());
-					if(replaySteps.getStepTypes().get(j).toString().equals("Model move")) {
-						//System.out.println(replaySteps.getNodeInstance().get(j)+ " is a Model Move");
+					if(replaySteps.getStepTypes().get(j)==StepTypes.MREAL) {
 						if(mapping.containsKey(replaySteps.getNodeInstance().get(j))){
 							deviations.put(mapping.get(replaySteps.getNodeInstance().get(j)).toString(),deviations.getOrDefault(mapping.get(replaySteps.getNodeInstance().get(j)).toString(), 0.0)+1.0);
 						}
@@ -49,11 +50,9 @@ public class DeviationAnalyzer extends IncrementalTraceAnalyzer<Map<String, Doub
 							deviations.put(replaySteps.getNodeInstance().get(j).toString(),deviations.getOrDefault(replaySteps.getNodeInstance().get(j).toString(), 0.0)+1.0);
 						}
 					}
-					if(replaySteps.getStepTypes().get(j).toString().equals("Log move")) {
-						//System.out.println(replaySteps.getNodeInstance().get(j)+" is a log Move");
+					else if(replaySteps.getStepTypes().get(j)== StepTypes.L) {
 						deviations.put(replaySteps.getNodeInstance().get(j).toString(),deviations.getOrDefault(replaySteps.getNodeInstance().get(j).toString(), 0.0)+1.0);
 					}
-					//System.out.println("Updated Deviations: "+deviations);
 				}
 			}
 		}

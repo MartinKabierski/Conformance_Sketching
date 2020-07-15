@@ -19,9 +19,9 @@ def main():
         red_patch = mpatches.Patch(color='black', label='Sampled Log')
 
 
-        bpi2012_orig=pd.read_csv("./results/results10/BPI_Challenge_2012_baseline.csv", sep=';')
-        bpi2012_deviations=pd.read_csv("./results/results10/BPI_Challenge_2012_deviationsTEST.csv", sep=';')
-        bpi2012_deviations_approx=pd.read_csv("./results/results10/BPI_Challenge_2012_deviationsApproxTEST.csv", sep=';')
+        bpi2012_orig=pd.read_csv("./results/BPI_Challenge_2012_baseline.csv", sep=';')
+        bpi2012_deviations=pd.read_csv("./results/BPI_Challenge_2012_deviationsTEST.csv", sep=';')
+        bpi2012_deviations_approx=pd.read_csv("./results/BPI_Challenge_2012_deviationsApproxTEST.csv", sep=';')
 
         print("Loaded input files")
         print()

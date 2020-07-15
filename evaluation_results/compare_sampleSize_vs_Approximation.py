@@ -15,12 +15,12 @@ INPUT = "BPI_Challenge_2012"
 
 def main():
         #read in data frame
-        fitness=pd.read_csv("./results/results10/"+INPUT+"_fitness.csv", sep=';')
-        fitnessApprox=pd.read_csv("./results/results10/"+INPUT+"_fitnessApprox.csv", sep=';')
-        deviations=pd.read_csv("./results/results10/"+INPUT+"_deviations.csv", sep=';')
-        deviationsApprox=pd.read_csv("./results/results10/"+INPUT+"_deviationsApprox.csv", sep=';')
+        fitness=pd.read_csv("./results/"+INPUT+"_fitness.csv", sep=';')
+        fitnessApprox=pd.read_csv("./results/"+INPUT+"_fitnessApprox.csv", sep=';')
+        deviations=pd.read_csv("./results/"+INPUT+"_deviations.csv", sep=';')
+        deviationsApprox=pd.read_csv("./results/"+INPUT+"_deviationsApprox.csv", sep=';')
         
-        orig=pd.read_csv("./results/results10/"+INPUT+"_baseline.csv", sep=';')
+        orig=pd.read_csv("./results/"+INPUT+"_baseline.csv", sep=';')
         origFitness_mean=orig["fitness"].mean()
         origDeviations=orig["deviations"]
 
@@ -42,7 +42,6 @@ def main():
 
         print()
 
-#TODO MEAN SQUARED ERROR
 
 #fitness
         fitness_dist=[]

@@ -70,7 +70,6 @@ public abstract class IncrementalTraceAnalyzer<T>{
 		XLog traceAsLog=new XLogImpl(logAttributes);
 		traceAsLog.add(trace);
 		
-		Replayer replayer = ReplayerFactory.createReplayer(net, traceAsLog, mapping, true, this.initialMarking, this.finalMarking);
 		this.cnt++;
 		
 		if(this.results.contains(trace)) {
@@ -78,16 +77,17 @@ public abstract class IncrementalTraceAnalyzer<T>{
 			T conformanceInformation = results.get(trace).getResult();
 			//System.out.println("Using Information: "+conformanceInformation);
 			//System.out.println();
-			//T conformanceInformation = this.retrieveConformanceInformation(trace, replayResult);
+			//T  = this.retrieveConformanceInformation(trace, replayResult);
 			TraceAnalysisResult<T> result = new TraceAnalysisResult<T>(trace, false, conformanceInformation, results.get(trace).getReplayResult());
 			double distance = this.updateConformance(result);
 			return distance>this.parameter.getEpsilon();
 		}
 		this.totalVariants++;
+		Replayer replayer = ReplayerFactory.createReplayer(net, traceAsLog, mapping, true, this.initialMarking, this.finalMarking);
 		if(this.parameter.isApproximate())
 			return approximateConformance(trace, net, logAttributes, replayer);
 		else {
-			PNRepResult replayResult = this.replayTraceOnLog(trace, logAttributes, replayer);
+			PNRepResult replayResult = this.replayTraceOnLog(traceAsLog, logAttributes, replayer);
 			T conformanceResult = this.retrieveConformanceInformation(trace, replayResult);
 			TraceAnalysisResult<T> result = new TraceAnalysisResult<T>(trace, false, conformanceResult, replayResult);
 			double distance = this.updateConformance(result);
@@ -105,13 +105,15 @@ public abstract class IncrementalTraceAnalyzer<T>{
 	 * @return
 	 */
 	protected boolean approximateConformance(XTrace trace, PetrinetGraph net, XAttributeMap logAttributes, Replayer replayer) {
+		XLog traceAsLog=new XLogImpl(logAttributes);
+		traceAsLog.add(trace);
 		Pair<TraceAnalysisResult<T>, TraceEditDistance> referenceTraceInformation = mostSimilarTrace(trace);
 		if(kSimilar(trace, referenceTraceInformation)) {
 			List<T> potentialResults = determineConformanceApproximations(trace, referenceTraceInformation, logAttributes);
 			for (T candidate : potentialResults) {
 				if (this.conformanceCalculator.quantifyChange(candidate)>this.parameter.getEpsilon()) {
 					this.approximatedThenCalculated++;
-					PNRepResult replayResult = this.replayTraceOnLog(trace, logAttributes, replayer);
+					PNRepResult replayResult = this.replayTraceOnLog(traceAsLog, logAttributes, replayer);
 					T conformanceResult = this.retrieveConformanceInformation(trace, replayResult);
 					//System.out.println("Approximation->Calculation: "+conformanceResult.toString());
 					double distance = this.updateConformance(new TraceAnalysisResult<T>(trace, false, conformanceResult, replayResult));
@@ -126,7 +128,7 @@ public abstract class IncrementalTraceAnalyzer<T>{
 			return false;
 		}
 		else {
-			PNRepResult replayResult = this.replayTraceOnLog(trace, logAttributes, replayer);
+			PNRepResult replayResult = this.replayTraceOnLog(traceAsLog, logAttributes, replayer);
 			T conformanceResult = this.retrieveConformanceInformation(trace, replayResult);
 			//System.out.println("Calculation: "+conformanceResult.toString());
 			double distance = this.updateConformance(new TraceAnalysisResult<T>(trace, false, conformanceResult, replayResult));
@@ -207,11 +209,11 @@ public abstract class IncrementalTraceAnalyzer<T>{
 	}
 	
 	
-	protected PNRepResult replayTraceOnLog(XTrace trace, XAttributeMap logAttributes, Replayer replayer){
-		XLog testlog=new XLogImpl(logAttributes);
-		testlog.add(trace);
+	protected PNRepResult replayTraceOnLog(XLog log, XAttributeMap logAttributes, Replayer replayer){
+		//XLog testlog=new XLogImpl(logAttributes);
+		//testlog.add(trace);
 		try {
-			PNRepResult result = replayer.computePNRepResult(Progress.INVISIBLE, testlog);
+			PNRepResult result = replayer.computePNRepResult(Progress.INVISIBLE, log);
 			return result;
 		} catch (InterruptedException | ExecutionException e) {
 			e.printStackTrace();

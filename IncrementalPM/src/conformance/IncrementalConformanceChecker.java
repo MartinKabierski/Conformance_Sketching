@@ -74,7 +74,8 @@ public class IncrementalConformanceChecker {
 		//init
 		int sampledCnt=0;
 		int consecSamplesWithoutChangeCnt=0;
-		Random randNrGenerator=new Random(this.seed);
+		//Random randNrGenerator=new Random(this.seed);
+		Random randNrGenerator=new Random();
 		
 		//get minimal sample size using binomial proportions interval
 		int minimalSampleSize = ThresholdCalculator.calculateThreshold(this.parameter.getDelta(), this.parameter.getAlpha());
@@ -85,8 +86,9 @@ public class IncrementalConformanceChecker {
 		ThreadPoolExecutor executorService = (ThreadPoolExecutor)Executors.newFixedThreadPool(this.parameter.getNoThreads());
 		ExecutorCompletionService<Pair<Boolean, XTrace>> CompletionService = new ExecutorCompletionService<Pair<Boolean, XTrace>>(executorService);
 		
-		//Initially add minimum number of traces+ no of threads.
+		//Initially add minimum number of traces no of threads.
 		//the additional threads ensure, that thread pool is always full until the last task
+		//TODO fix empty results, if minimal sample size > log size
 		for(int i=0;i<minimalSampleSize+this.parameter.getNoThreads();i++) {
 			XTrace currentTrace= sampleRandomTrace(log, randNrGenerator);
 			if (parameter.storeSampledTraces()) {

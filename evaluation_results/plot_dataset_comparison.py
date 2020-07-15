@@ -28,11 +28,11 @@ def main():
 
 
         #BPI 2012#
-        bpi2012_baseline=pd.read_csv("./results/results10/BPI_Challenge_2012_baseline.csv", sep=';')
-        bpi2012_fitness=pd.read_csv("./results/results10/BPI_Challenge_2012_fitness.csv", sep=';')
-        bpi2012_fitnessApprox=pd.read_csv("./results/results10/BPI_Challenge_2012_fitnessApprox.csv", sep=';')
-        bpi2012_deviations=pd.read_csv("./results/results10/BPI_Challenge_2012_deviations.csv", sep=';')
-        bpi2012_deviationsApprox=pd.read_csv("./results/results10/BPI_Challenge_2012_deviationsApprox.csv", sep=';')
+        bpi2012_baseline=pd.read_csv("./results/BPI_Challenge_2012_baseline.csv", sep=';')
+        bpi2012_fitness=pd.read_csv("./results/BPI_Challenge_2012_fitness.csv", sep=';')
+        bpi2012_fitnessApprox=pd.read_csv("./results/BPI_Challenge_2012_fitnessApprox.csv", sep=';')
+        bpi2012_deviations=pd.read_csv("./results/BPI_Challenge_2012_deviations.csv", sep=';')
+        bpi2012_deviationsApprox=pd.read_csv("./results/BPI_Challenge_2012_deviationsApprox.csv", sep=';')
         
         bpi2012_fitness=bpi2012_fitness.loc[(bpi2012_fitness["delta"]==chosen_delta) & (bpi2012_fitness["alpha"]==chosen_alpha) & (bpi2012_fitness["epsilon"]==chosen_epsilon)]
         bpi2012_fitnessApprox=bpi2012_fitnessApprox.loc[(bpi2012_fitnessApprox["delta"]==chosen_delta) & (bpi2012_fitnessApprox["alpha"]==chosen_alpha) & (bpi2012_fitnessApprox["epsilon"]==chosen_epsilon) & (bpi2012_fitnessApprox["k"]==chosen_k)]
@@ -40,11 +40,11 @@ def main():
         bpi2012_deviationsApprox=bpi2012_deviationsApprox.loc[(bpi2012_deviationsApprox["delta"]==chosen_delta) & (bpi2012_deviationsApprox["alpha"]==chosen_alpha) & (bpi2012_deviationsApprox["epsilon"]==chosen_epsilon) & (bpi2012_deviationsApprox["k"]==chosen_k) & (bpi2012_deviationsApprox["approximationMode"]=="NONALIGNING_KNOWN")]
 
         #BPI 2014#
-        bpi2014_baseline=pd.read_csv("./results/results10/Detail_Incident_Activity_baseline.csv", sep=';')
-        bpi2014_fitness=pd.read_csv("./results/results10/Detail_Incident_Activity_fitness.csv", sep=';')
-        bpi2014_fitnessApprox=pd.read_csv("./results/results10/Detail_Incident_Activity_fitnessApprox.csv", sep=';')
-        bpi2014_deviations=pd.read_csv("./results/results10/Detail_Incident_Activity_deviations.csv", sep=';')
-        bpi2014_deviationsApprox=pd.read_csv("./results/results10/Detail_Incident_Activity_deviationsApprox.csv", sep=';')
+        bpi2014_baseline=pd.read_csv("./results/Detail_Incident_Activity_baseline.csv", sep=';')
+        bpi2014_fitness=pd.read_csv("./results/Detail_Incident_Activity_fitness.csv", sep=';')
+        bpi2014_fitnessApprox=pd.read_csv("./results/Detail_Incident_Activity_fitnessApprox.csv", sep=';')
+        bpi2014_deviations=pd.read_csv("./results/Detail_Incident_Activity_deviations.csv", sep=';')
+        bpi2014_deviationsApprox=pd.read_csv("./results/Detail_Incident_Activity_deviationsApprox.csv", sep=';')
         
         bpi2014_fitness=bpi2014_fitness.loc[(bpi2014_fitness["delta"]==chosen_delta) & (bpi2014_fitness["alpha"]==chosen_alpha) & (bpi2014_fitness["epsilon"]==chosen_epsilon)]
         bpi2014_fitnessApprox=bpi2014_fitnessApprox.loc[(bpi2014_fitnessApprox["delta"]==chosen_delta) & (bpi2014_fitnessApprox["alpha"]==chosen_alpha) & (bpi2014_fitnessApprox["epsilon"]==chosen_epsilon) & (bpi2014_fitnessApprox["k"]==chosen_k)]
@@ -52,11 +52,11 @@ def main():
         bpi2014_deviationsApprox=bpi2014_deviationsApprox.loc[(bpi2014_deviationsApprox["delta"]==chosen_delta) & (bpi2014_deviationsApprox["alpha"]==chosen_alpha) & (bpi2014_deviationsApprox["epsilon"]==chosen_epsilon) & (bpi2014_deviationsApprox["k"]==chosen_k) & (bpi2014_deviationsApprox["approximationMode"]=="NONALIGNING_KNOWN")]
 
         #road traffic fines
-        road_traffic_baseline=pd.read_csv("./results/results10/Road_Traffic_Fines_Management_Process_baseline.csv", sep=';')
-        road_traffic_fitness=pd.read_csv("./results/results10/Road_Traffic_Fines_Management_Process_fitness.csv", sep=';')
-        road_traffic_fitnessApprox=pd.read_csv("./results/results10/Road_Traffic_Fines_Management_Process_fitnessApprox.csv", sep=';')
-        road_traffic_deviations=pd.read_csv("./results/results10/Road_Traffic_Fines_Management_Process_deviations.csv", sep=';')
-        road_traffic_deviationsApprox=pd.read_csv("./results/results10/Road_Traffic_Fines_Management_Process_deviationsApprox.csv", sep=';')
+        road_traffic_baseline=pd.read_csv("./results/Road_Traffic_Fines_Management_Process_baseline.csv", sep=';')
+        road_traffic_fitness=pd.read_csv("./results/Road_Traffic_Fines_Management_Process_fitness.csv", sep=';')
+        road_traffic_fitnessApprox=pd.read_csv("./results/Road_Traffic_Fines_Management_Process_fitnessApprox.csv", sep=';')
+        road_traffic_deviations=pd.read_csv("./results/Road_Traffic_Fines_Management_Process_deviations.csv", sep=';')
+        road_traffic_deviationsApprox=pd.read_csv("./results/Road_Traffic_Fines_Management_Process_deviationsApprox.csv", sep=';')
 
         road_traffic_fitness=road_traffic_fitness.loc[(road_traffic_fitness["delta"]==chosen_delta) & (road_traffic_fitness["alpha"]==chosen_alpha) & (road_traffic_fitness["epsilon"]==chosen_epsilon)]
         road_traffic_fitnessApprox=road_traffic_fitnessApprox.loc[(road_traffic_fitnessApprox["delta"]==chosen_delta) & (road_traffic_fitnessApprox["alpha"]==chosen_alpha) & (road_traffic_fitnessApprox["epsilon"]==chosen_epsilon) & (road_traffic_fitnessApprox["k"]==chosen_k)]

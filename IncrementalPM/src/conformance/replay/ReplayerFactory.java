@@ -36,7 +36,7 @@ public class ReplayerFactory {
 	 * @return
 	 */
 	public static Replayer createReplayer(PetrinetGraph net, XLog log, TransEvClassMapping mapping, boolean calculateIncrementally, Marking initialMarking, Marking finalMarking) {
-		XEventClassifier eventClassifier=XLogInfoImpl.STANDARD_CLASSIFIER;
+		XEventClassifier eventClassifier=XLogInfoImpl.NAME_CLASSIFIER;
 		XLogInfo summary = XLogInfoFactory.createLogInfo(log, eventClassifier);
 		XEventClasses classes = summary.getEventClasses();
 		
@@ -57,7 +57,7 @@ public class ReplayerFactory {
 	 * @return
 	 */
 	public static Replayer createReplayer(PetrinetGraph net, XLog log, TransEvClassMapping mapping, int noThreads, Marking initialMarking, Marking finalMarking) {
-		XEventClassifier eventClassifier=XLogInfoImpl.STANDARD_CLASSIFIER;
+		XEventClassifier eventClassifier=XLogInfoImpl.NAME_CLASSIFIER;
 		XLogInfo summary = XLogInfoFactory.createLogInfo(log, eventClassifier);
 		XEventClasses classes = summary.getEventClasses();
 		
@@ -67,14 +67,14 @@ public class ReplayerFactory {
 	}
 	
 	public static Replayer createReplayer(PetrinetGraph net, XLog log, TransEvClassMapping mapping, boolean calculateIncrementally) {
-		XEventClassifier eventClassifier=XLogInfoImpl.STANDARD_CLASSIFIER;
+		XEventClassifier eventClassifier=XLogInfoImpl.NAME_CLASSIFIER;
 		XLogInfo summary = XLogInfoFactory.createLogInfo(log, eventClassifier);
 		XEventClasses classes = summary.getEventClasses();
 		
 		ReplayerParameters parameters;
 		if (calculateIncrementally) parameters = new ReplayerParameters.Default(THREADS_SAMPLING, Debug.NONE);
-		else if (!calculateIncrementally) parameters = new ReplayerParameters.Default(THREADS_BASELINE, Debug.NONE);
-		else parameters = new ReplayerParameters.Default();
+		else  parameters = new ReplayerParameters.Default(THREADS_BASELINE, Debug.NONE);
+		//else parameters = new ReplayerParameters.Default();
 		return new Replayer(parameters, (Petrinet) net, getInitialMarking(net), getFinalMarking(net), classes, mapping, true);
 	}
 	

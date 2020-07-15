@@ -21,7 +21,8 @@ public class IccParameter {
 	private boolean checkExternalQuality;
 	private QualityCheckManager internalQualityCheckManager;
 	private QualityCheckManager externalQualityCheckManager;
-	
+	//TODO unify how many Threads are used together with threads for baseline algorithm
+	//TODO add classifier for mapping
 	private int noThreads;
 	int NO_THREADS=10;
 	//int NO_THREADS= Runtime.getRuntime().availableProcessors() / 4;

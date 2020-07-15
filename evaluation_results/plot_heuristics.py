@@ -22,12 +22,12 @@ def main():
         
         #build a dataframe for each result file
         #original
-        bpi2012_baseline=pd.read_csv("./results/results10/BPI_Challenge_2012_baseline.csv", sep=';')
+        bpi2012_baseline=pd.read_csv("./results/BPI_Challenge_2012_baseline.csv", sep=';')
         bpi2012_orig_mean=bpi2012_baseline["time"].mean()
 
-        bpi2012_deviations=pd.read_csv("./results/results10/BPI_Challenge_2012_deviations.csv", sep=';')
-        bpi2012_deviationsApprox=pd.read_csv("./results/results10/BPI_Challenge_2012_deviationsApprox.csv", sep=';')
-        bpi2012_prefixsuffix=pd.read_csv("./results/results10/BPI_Challenge_2012_prefixsuffix.csv", sep=';')
+        bpi2012_deviations=pd.read_csv("./results/BPI_Challenge_2012_deviations.csv", sep=';')
+        bpi2012_deviationsApprox=pd.read_csv("./results/BPI_Challenge_2012_deviationsApprox.csv", sep=';')
+        bpi2012_prefixsuffix=pd.read_csv("./results/BPI_Challenge_2012_prefixsuffix.csv", sep=';')
 
         #set parameters for original-to-implementation comparison for all three logs
         chosen_delta=0.01

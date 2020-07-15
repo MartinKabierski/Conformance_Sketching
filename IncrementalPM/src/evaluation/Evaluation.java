@@ -2,6 +2,8 @@ package evaluation;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -52,6 +54,7 @@ import conformance.traceAnalysis.IncrementalTraceAnalyzer;
 import conformance.traceAnalysis.TraceAnalyzerFactory;
 import nl.tue.alignment.Progress;
 import nl.tue.alignment.Replayer;
+import nl.tue.alignment.TraceReplayTask.TraceReplayResult;
 import nl.tue.astar.AStarException;
 import qualitychecking.AbstractValueDistribution;
 import qualitychecking.QualityCheckManager;
@@ -78,7 +81,7 @@ public class Evaluation{
 	long[] SEEDS = {7259, 2434, 1967, 4180, 4300, 3514, 4086, 8993, 3258, 6415};
 
 	
-	
+	//TODO incorporate classifier
 	@Plugin(name = "TEST - Evaluate Incremental Conformance Checker", returnLabels = { "Global Conformance Result" }, returnTypes = { GlobalConformanceResult.class }, parameterLabels = {}, userAccessible = true)
 	@UITopiaVariant(affiliation = "Humboldt-University Berlin", author = "Martin Bauer", email = "bauemart@hu-berlin.de", uiLabel = UITopiaVariant.USEPLUGIN)
 	@PluginVariant(variantLabel = "TEST - Evaluate Incremental Conformance Checker", requiredParameterLabels = {})
@@ -89,9 +92,9 @@ public class Evaluation{
 		//resourceDeviationEvaluation(context);
 		//qualityCheckingEvaluation(context);
 		//resourceDeviationEvaluation(context);
-		//baselineResultsEvaluation(context);
+		baselineResultsEvaluation(context);
 		
-		test(context);
+		//test(context);
 		
 		//sampleSizeEvaluation(context);
 		return null;
@@ -99,9 +102,10 @@ public class Evaluation{
 	
 
 	private void test(UIPluginContext context) throws Exception {
-		//String[] inputNames = {"Road_Traffic_Fines_Management_Process", "RTFM_model2"};
+		//String[] inputNames = {"Road_Traffic_Fines_Management_Process"/*, "RTFM_model2"*/};
 		String[] inputNames = {"BPI_Challenge_2012"};
-		
+		//String[] inputNames = {"Detail_Incident_Activity"};
+		//System.setOut(new PrintStream(new FileOutputStream("TEST.txt")));
 		for(String input : inputNames) {
 			System.out.println("	>"+input);
 			String NET_PATH = "input"+File.separator+input + ".pnml";
@@ -123,11 +127,17 @@ public class Evaluation{
 //			settings.add (new IccParameter(0.01, 0.99, 0.01, 0.2, IncrementalConformanceChecker.Goals.FITNESS, 		true,  false, false));
 //			settings.add (new IccParameter(0.01, 0.99, 0.01, 0.2, IncrementalConformanceChecker.Goals.FITNESS, 		true,  false, false));
 //			
+			//settings.add (new IccParameter(0.1, 0.99, 0.01, 0.2, IncrementalConformanceChecker.Goals.DEVIATIONS, 	false, false, false));
 			settings.add (new IccParameter(0.01, 0.99, 0.01, 0.2, IncrementalConformanceChecker.Goals.DEVIATIONS, 	false, false, false));
+			//settings.add (new IccParameter(0.001, 0.99, 0.01, 0.2, IncrementalConformanceChecker.Goals.DEVIATIONS, 	false, false, false));
+			//settings.add (new IccParameter(0.0006, 0.99, 0.01, 0.2, IncrementalConformanceChecker.Goals.DEVIATIONS, 	false, false, false));
+			//settings.add (new IccParameter(0.0006, 0.99, 0.01, 0.2, IncrementalConformanceChecker.Goals.DEVIATIONS, 	false, false, false));
+			//settings.add (new IccParameter(0.0006, 0.99, 0.01, 0.2, IncrementalConformanceChecker.Goals.DEVIATIONS, 	false, false, false));
+			//settings.add (new IccParameter(0.0006, 0.99, 0.01, 0.2, IncrementalConformanceChecker.Goals.DEVIATIONS, 	false, false, false));
+			//settings.add (new IccParameter(0.0006, 0.99, 0.01, 0.2, IncrementalConformanceChecker.Goals.DEVIATIONS, 	false, false, false));
+
 			//settings.add (new IccParameter(0.05, 0.99, 0.01, 0.2, IncrementalConformanceChecker.Goals.DEVIATIONS, 	false, false, false));
-			//settings.add (new IccParameter(0.05, 0.99, 0.01, 0.2, IncrementalConformanceChecker.Goals.DEVIATIONS, 	false, false, false));
-//			
-//			//TODO approximation with retaining seem to work worse for logs with a small number of trace variants, as critical events may be discarded
+			//settings.add (new IccParameter(0.05, 0.99, 0.01, 0.2, IncrementalConformanceChecker.Goals.DEVIATIONS, 	false, false, false));	
 			
 			//settings.add (new IccParameter(0.05, 0.99, 0.01, 0.2, IncrementalConformanceChecker.Goals.DEVIATIONS, 	true, IncrementalConformanceChecker.Heuristics.NONALIGNING_KNOWN, 	false, false));
 			//settings.add (new IccParameter(0.05, 0.99, 0.01, 0.2, IncrementalConformanceChecker.Goals.DEVIATIONS, 	true, IncrementalConformanceChecker.Heuristics.NONALIGNING_KNOWN, 	false, false));
@@ -167,61 +177,74 @@ public class Evaluation{
 				System.out.println(result.toString());
 				System.out.println(end-start);
 				System.out.println();
-				
-				//get baseline result as comparison
-				Map<String,Double> deviationsRel=new HashMap<String,Double>();
-				
-				copyLog = (XLog) log.clone();
-				Replayer replayer = ReplayerFactory.createReplayer(net, copyLog, mapping, false);
-				
-				start = System.currentTimeMillis();
-				PNRepResult result2 = replayer.computePNRepResult(Progress.INVISIBLE, copyLog);
-				end = System.currentTimeMillis();
-				System.out.println("replay time Baseline:"+(end-start));
-				
-
-				//deviations
-				Map<String, Double> deviations = new HashMap<String, Double>();
-				for(SyncReplayResult replaySteps : result2) {
-					//System.out.println(replaySteps.getStepTypes().toString());
-					for (int j=0;j<replaySteps.getStepTypes().size();j++) {
-						if(replaySteps.getStepTypes().get(j).toString().equals("Model move")||replaySteps.getStepTypes().get(j).toString().equals("Log move")) {
-							//System.out.println(mapping.toString());
-							//System.out.println(replaySteps.getStepTypes().get(j).toString()+" , "+replaySteps.getNodeInstance().get(j).toString());
-							if(replaySteps.getStepTypes().get(j).toString().equals("Model move")) {
-								if(mapping.containsKey(replaySteps.getNodeInstance().get(j))){
-									deviations.put(mapping.get(replaySteps.getNodeInstance().get(j)).toString(),deviations.getOrDefault(mapping.get(replaySteps.getNodeInstance().get(j)).toString(), 0.0)+1.0);
-								}
-								else {
-									deviations.put(replaySteps.getNodeInstance().get(j).toString(),deviations.getOrDefault(replaySteps.getNodeInstance().get(j).toString(), 0.0)+1.0);
-								}
+			}
+			//System.setOut(System.out);
+			//get baseline result as comparison
+			Map<String,Double> deviationsRel=new HashMap<String,Double>();
+			
+			XLog copyLog = (XLog) log.clone();
+			Replayer replayer = ReplayerFactory.createReplayer(net, copyLog, mapping, false);
+			long start = System.currentTimeMillis();
+			PNRepResult result2 = replayer.computePNRepResult(Progress.INVISIBLE, copyLog);
+			long end = System.currentTimeMillis();
+			System.out.println("replay time Baseline:"+(end-start));
+			
+			double fitness = (Double) result2.getInfo().get("Trace Fitness");
+			System.out.println("Fitness: "+fitness);
+			//deviations
+			Map<String, Double> deviations = new HashMap<String, Double>();
+			int cnt=0;
+			for(SyncReplayResult replaySteps : result2) {
+				int noOccurences = replaySteps.getTraceIndex().size();
+				cnt+=noOccurences;
+				//System.out.println(replaySteps.getStepTypes().toString());
+				for (int j=0;j<replaySteps.getStepTypes().size();j++) {
+					//if(replaySteps.getStepTypes().get(j)== StepTypes.MINVI)
+						//cnt++;
+					if(replaySteps.getStepTypes().get(j)== StepTypes.L||replaySteps.getStepTypes().get(j)==StepTypes.MREAL) {
+						//cnt++;
+						//deviations.put(replaySteps.getNodeInstance().get(j).toString(),deviations.getOrDefault(replaySteps.getNodeInstance().get(j).toString(), 0.0)+1.0);
+						//System.out.println(mapping.toString());
+						//System.out.println(replaySteps.getStepTypes().get(j).toString()+" , "+replaySteps.getNodeInstance().get(j).toString());
+						if(replaySteps.getStepTypes().get(j)==StepTypes.MREAL) {
+							if(mapping.containsKey(replaySteps.getNodeInstance().get(j))){
+								deviations.put(mapping.get(replaySteps.getNodeInstance().get(j)).toString(),deviations.getOrDefault(mapping.get(replaySteps.getNodeInstance().get(j)).toString(), 0.0)+noOccurences);
 							}
-							if(replaySteps.getStepTypes().get(j).toString().equals("Log move")) {
-								deviations.put(replaySteps.getNodeInstance().get(j).toString(),deviations.getOrDefault(replaySteps.getNodeInstance().get(j).toString(), 0.0)+1.0);
+							else {
+								deviations.put(replaySteps.getNodeInstance().get(j).toString(),deviations.getOrDefault(replaySteps.getNodeInstance().get(j).toString(), 0.0)+noOccurences);
 							}
-							//System.out.println("Updated Deviations: "+deviations);
 						}
+						else if(replaySteps.getStepTypes().get(j)== StepTypes.L) {
+							deviations.put(replaySteps.getNodeInstance().get(j).toString(),deviations.getOrDefault(replaySteps.getNodeInstance().get(j).toString(), 0.0)+noOccurences);
+						}
+				//		//System.out.println("Updated Deviations: "+deviations);
 					}
 				}
-				double total =0;
-				for (java.util.Map.Entry<String, Double> x : deviations.entrySet()) {
-					total+=x.getValue();
-				}
-				double test = total;
-				//deviationsAbs=Maps.asMap(deviatingActivities.elementSet(), elem -> deviatingActivities.count(elem));
-				deviations.keySet().stream().forEach(x-> deviationsRel.put(x, deviations.get(x)/test));
-				Map<String, Double> sortedDeviations =  deviationsRel
-						.entrySet()
-						.stream()
-						.sorted(Map.Entry.<String, Double>comparingByValue().reversed())
-						.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue,
-						(e1, e2) -> e1, LinkedHashMap::new));
-				System.out.println(sortedDeviations);
 			}
-			
-
+			//deviationsAbs=Maps.asMap(deviatingActivities.elementSet(), elem -> deviatingActivities.count(elem));
+			double total = 0.0;
+			for (Entry<String, Double> x : deviations.entrySet()) {
+				total = total + x.getValue();
+			}
+			double test = total;
+			Map<String, Double> sortedDeviations =  deviations
+					.entrySet()
+					.stream()
+					.sorted(Map.Entry.<String, Double>comparingByValue().reversed())
+					.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue,
+					(e1, e2) -> e1, LinkedHashMap::new));
+			System.out.println("Total: "+total);
+			System.out.println("Absolute: "+sortedDeviations);
+			deviations.keySet().stream().forEach(x-> deviationsRel.put(x, deviations.get(x)/test));
+			sortedDeviations =  deviationsRel
+					.entrySet()
+					.stream()
+					.sorted(Map.Entry.<String, Double>comparingByValue().reversed())
+					.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue,
+					(e1, e2) -> e1, LinkedHashMap::new));
+			System.out.println("Relative: "+sortedDeviations);
+			System.out.println("Total number of SyncReplayResults: "+cnt);
 		}
-
 	}
 
 //	/**
@@ -231,14 +254,14 @@ public class Evaluation{
 //	 */
 //	
 	private void baselineResultsEvaluation(UIPluginContext context) throws Exception{
-		//TODO baseline for both inputs and baselines
-		String[] inputNames = {"RTFM_model2"};
+		//String[] inputNames = {"RTFM_model2"};
+		String[] inputNames = {"Road_Traffic_Fines_Management_Process", "BPI_Challenge_2012", "Detail_Incident_Activity"};
 		//String[] inputNames = {"Road_Traffic_Fines_Management_Process", "BPI_Challenge_2012", "Detail_Incident_Activity", "prAm6","prBm6","prCm6","prDm6","prEm6","prFm6","prGm6"};
 		//String[] inputNames = {"prAm6","prBm6","prCm6","prDm6","prEm6","prFm6","prGm6"};
 		System.out.println("Retrieving Baseline Results");
 		for(String input : inputNames) {
 			System.out.println(">"+input);
-			PrintWriter baselineStats = new PrintWriter(input+"_baseline5.csv", "UTF-8");
+			PrintWriter baselineStats = new PrintWriter(input+"_baseline10_TEST.csv", "UTF-8");
 			baselineStats.write(String.join(";","time","logSize","fitness","deviations","resources\n"));
 			String NET_PATH = "input/" + input + ".pnml";
 			String LOG_PATH = "input/" + input + ".xes";
@@ -267,28 +290,35 @@ public class Evaluation{
 
 				//fitness
 				fitness = (Double) result.getInfo().get("Trace Fitness");
+				//fitness = (Double) result.getInfo().get("Move-Log Fitness");
+				//fitness = (Double) result.getInfo().get("Move-Model Fitness");
 				//System.out.println("Fitness: "+fitness);
 				
 				//deviations
 				Map<String, Double> deviations = new HashMap<String, Double>();
 				for(SyncReplayResult replaySteps : result) {
+					int noOccurences = replaySteps.getTraceIndex().size();
 					//System.out.println(replaySteps.getStepTypes().toString());
 					for (int j=0;j<replaySteps.getStepTypes().size();j++) {
-						if(replaySteps.getStepTypes().get(j).toString().equals("Model move")||replaySteps.getStepTypes().get(j).toString().equals("Log move")) {
+						//if(replaySteps.getStepTypes().get(j)== StepTypes.MINVI)
+							//cnt++;
+						if(replaySteps.getStepTypes().get(j)== StepTypes.L||replaySteps.getStepTypes().get(j)==StepTypes.MREAL) {
+							//cnt++;
+							//deviations.put(replaySteps.getNodeInstance().get(j).toString(),deviations.getOrDefault(replaySteps.getNodeInstance().get(j).toString(), 0.0)+1.0);
 							//System.out.println(mapping.toString());
 							//System.out.println(replaySteps.getStepTypes().get(j).toString()+" , "+replaySteps.getNodeInstance().get(j).toString());
-							if(replaySteps.getStepTypes().get(j).toString().equals("Model move")) {
+							if(replaySteps.getStepTypes().get(j)==StepTypes.MREAL) {
 								if(mapping.containsKey(replaySteps.getNodeInstance().get(j))){
-									deviations.put(mapping.get(replaySteps.getNodeInstance().get(j)).toString(),deviations.getOrDefault(mapping.get(replaySteps.getNodeInstance().get(j)).toString(), 0.0)+1.0);
+									deviations.put(mapping.get(replaySteps.getNodeInstance().get(j)).toString(),deviations.getOrDefault(mapping.get(replaySteps.getNodeInstance().get(j)).toString(), 0.0)+noOccurences);
 								}
 								else {
-									deviations.put(replaySteps.getNodeInstance().get(j).toString(),deviations.getOrDefault(replaySteps.getNodeInstance().get(j).toString(), 0.0)+1.0);
+									deviations.put(replaySteps.getNodeInstance().get(j).toString(),deviations.getOrDefault(replaySteps.getNodeInstance().get(j).toString(), 0.0)+noOccurences);
 								}
 							}
-							if(replaySteps.getStepTypes().get(j).toString().equals("Log move")) {
-								deviations.put(replaySteps.getNodeInstance().get(j).toString(),deviations.getOrDefault(replaySteps.getNodeInstance().get(j).toString(), 0.0)+1.0);
+							else if(replaySteps.getStepTypes().get(j)== StepTypes.L) {
+								deviations.put(replaySteps.getNodeInstance().get(j).toString(),deviations.getOrDefault(replaySteps.getNodeInstance().get(j).toString(), 0.0)+noOccurences);
 							}
-							//System.out.println("Updated Deviations: "+deviations);
+					//		//System.out.println("Updated Deviations: "+deviations);
 						}
 					}
 				}
@@ -310,36 +340,38 @@ public class Evaluation{
 				resAssignment = assignmentComputer.createResourceAssignment(copyLog);
 				
 				for (SyncReplayResult replayResult : result) {
-					XTrace trace = copyLog.get(replayResult.getTraceIndex().first());
 					List<StepTypes> stepTypes = replayResult.getStepTypes();
-					Map<String, Map<String,Double>> result1 = getResourcesFromSkipSteps(trace, stepTypes);
-					Map<String, Map<String,Double>> result2 = getUnauthorizedResources(trace, resAssignment);
-					for (String activity : result2.keySet()) {
-						if (resources.containsKey(activity)) {
-							for(Entry<String, Double> resource : result2.get(activity).entrySet()) {
-								if(resources.get(activity).containsKey(resource.getKey())) {
-									resources.get(activity).put(resource.getKey(), resources.get(activity).get(resource.getKey())+resource.getValue());
+					for (int traceIndex : replayResult.getTraceIndex()) {
+						XTrace trace = copyLog.get(traceIndex);
+						Map<String, Map<String,Double>> result1 = getResourcesFromSkipSteps(trace, stepTypes);
+						Map<String, Map<String,Double>> result2 = getUnauthorizedResources(trace, resAssignment);
+						for (String activity : result2.keySet()) {
+							if (resources.containsKey(activity)) {
+								for(Entry<String, Double> resource : result2.get(activity).entrySet()) {
+									if(resources.get(activity).containsKey(resource.getKey())) {
+										resources.get(activity).put(resource.getKey(), resources.get(activity).get(resource.getKey())+resource.getValue());
+									}
+									else
+										resources.get(activity).put(resource.getKey(), resource.getValue());
 								}
-								else
-									resources.get(activity).put(resource.getKey(), resource.getValue());
-							}
-						} else {
-							resources.put(activity, result2.get(activity));
-						}
-					}
-					for (String activity : result1.keySet()) {
-						if(resources.containsKey(activity)) {
-							for (Entry<String, Double> resource : result1.get(activity).entrySet()) {
-								if(resources.get(activity).containsKey(resource.getKey())) {
-									resources.get(activity).put(resource.getKey(), resources.get(activity).get(resource.getKey())+resource.getValue());
-								}
-								else {
-									resources.get(activity).put(resource.getKey(),resource.getValue());
-								}
+							} else {
+								resources.put(activity, result2.get(activity));
 							}
 						}
-						else {
-							resources.put(activity, result1.get(activity));
+						for (String activity : result1.keySet()) {
+							if(resources.containsKey(activity)) {
+								for (Entry<String, Double> resource : result1.get(activity).entrySet()) {
+									if(resources.get(activity).containsKey(resource.getKey())) {
+										resources.get(activity).put(resource.getKey(), resources.get(activity).get(resource.getKey())+resource.getValue());
+									}
+									else {
+										resources.get(activity).put(resource.getKey(),resource.getValue());
+									}
+								}
+							}
+							else {
+								resources.put(activity, result1.get(activity));
+							}
 						}
 					}
 				}
@@ -414,8 +446,9 @@ public class Evaluation{
 	private void parameterEvaluation(final UIPluginContext context) throws Exception{
 		int repetitions =10;
 
-		String[] inputNames = {"RTFM_model2"};
+		//String[] inputNames = {"RTFM_model2"};
 		//String[] inputNames = {"Road_Traffic_Fines_Management_Process", "BPI_Challenge_2012"};
+		String[] inputNames = {"BPI_Challenge_2012"};
 		//String[] inputNames = {"Detail_Incident_Activity"};
 
 		System.out.println("Evaluating parameters");
@@ -428,13 +461,10 @@ public class Evaluation{
 			System.out.println(">Done");
 			TransEvClassMapping mapping = computeTransEventMapping(log, net);			
 			boolean test = true;
-			while(test) {
-				
-			}
-			PrintWriter fitness 		= new PrintWriter(input+"_fitness5.csv", "UTF-8");
-			PrintWriter fitnessApprox 	= new PrintWriter(input+"_fitnessApprox5.csv", "UTF-8");
-			PrintWriter deviation 		= new PrintWriter(input+"_deviations5.csv", "UTF-8");
-			PrintWriter deviationApprox = new PrintWriter(input+"_deviationsApprox5.csv", "UTF-8");
+			PrintWriter fitness 		= new PrintWriter(input+"_fitnessTEST.csv", "UTF-8");
+			PrintWriter fitnessApprox 	= new PrintWriter(input+"_fitnessApproxTEST.csv", "UTF-8");
+			PrintWriter deviation 		= new PrintWriter(input+"_deviationsTEST.csv", "UTF-8");
+			PrintWriter deviationApprox = new PrintWriter(input+"_deviationsApproxTEST.csv", "UTF-8");
 			fitness			.write(String.join(";","delta","alpha","epsilon","k","time","logSize","variants","approximated","fitness","deviations","approximationMode","resources\n"));
 			fitnessApprox	.write(String.join(";","delta","alpha","epsilon","k","time","logSize","variants","approximated","fitness","deviations","approximationMode","resources\n"));
 			deviation		.write(String.join(";","delta","alpha","epsilon","k","time","logSize","variants","approximated","fitness","deviations","approximationMode","resources\n"));
@@ -448,7 +478,7 @@ public class Evaluation{
 			//list.add(new IccParameter(0.01, 0.99, 0.01, 0.2 , IncrementalConformanceChecker.Goals.FITNESS, true, false, false));
 			//list.add(new IccParameter(0.01, 0.99, 0.01, 0.2 , IncrementalConformanceChecker.Goals.DEVIATIONS, false, false, false));
 			//list.add(new IccParameter(0.01, 0.99, 0.01, 0.2 , IncrementalConformanceChecker.Goals.DEVIATIONS, true, IncrementalConformanceChecker.Heuristics.NONALIGNING_KNOWN, false, false));
-			list.add(new IccParameter(0.01, 0.99, 0.01, 0.1 , IncrementalConformanceChecker.Goals.FITNESS, false, false, false));
+			/*list.add(new IccParameter(0.01, 0.99, 0.01, 0.1 , IncrementalConformanceChecker.Goals.FITNESS, false, false, false));
 			list.add(new IccParameter(0.01, 0.95, 0.01, 0.1 , IncrementalConformanceChecker.Goals.FITNESS, false, false, false));
 			list.add(new IccParameter(0.01, 0.90, 0.01, 0.1 , IncrementalConformanceChecker.Goals.FITNESS, false, false, false));
 			list.add(new IccParameter(0.05, 0.99, 0.01, 0.1 , IncrementalConformanceChecker.Goals.FITNESS, false, false, false));
@@ -497,12 +527,23 @@ public class Evaluation{
 			list.add(new IccParameter(0.10, 0.95, 0.01, 0.3 , IncrementalConformanceChecker.Goals.FITNESS, true, false, false));
 			list.add(new IccParameter(0.10, 0.90, 0.01, 0.3 , IncrementalConformanceChecker.Goals.FITNESS, true, false, false));
 			list.add(new IccParameter(0.01, 0.99, 0.05, 0.3 , IncrementalConformanceChecker.Goals.FITNESS, true, false, false));
-			list.add(new IccParameter(0.01, 0.99, 0.10, 0.3 , IncrementalConformanceChecker.Goals.FITNESS, true, false, false));
+			list.add(new IccParameter(0.01, 0.99, 0.10, 0.3 , IncrementalConformanceChecker.Goals.FITNESS, true, false, false));*/
 			
+			list.add(new IccParameter(0.01, 0.99, 0.01, 0.2 , IncrementalConformanceChecker.Goals.DEVIATIONS, false, false, false));
+			list.add(new IccParameter(0.05, 0.99, 0.01, 0.2 , IncrementalConformanceChecker.Goals.DEVIATIONS, false, false, false));
 			
+			list.add(new IccParameter(0.01, 0.99, 0.01, 0.1 , IncrementalConformanceChecker.Goals.DEVIATIONS, true, IncrementalConformanceChecker.Heuristics.NONALIGNING_ALL, false, false));
+			list.add(new IccParameter(0.01, 0.99, 0.01, 0.2 , IncrementalConformanceChecker.Goals.DEVIATIONS, true, IncrementalConformanceChecker.Heuristics.NONALIGNING_ALL, false, false));
+			list.add(new IccParameter(0.01, 0.99, 0.01, 0.3 , IncrementalConformanceChecker.Goals.DEVIATIONS, true, IncrementalConformanceChecker.Heuristics.NONALIGNING_ALL, false, false));
+			list.add(new IccParameter(0.05, 0.99, 0.01, 0.2 , IncrementalConformanceChecker.Goals.DEVIATIONS, true, IncrementalConformanceChecker.Heuristics.NONALIGNING_ALL, false, false));
+			
+			list.add(new IccParameter(0.01, 0.99, 0.01, 0.1 , IncrementalConformanceChecker.Goals.DEVIATIONS, true, IncrementalConformanceChecker.Heuristics.NONALIGNING_KNOWN, false, false));
+			list.add(new IccParameter(0.01, 0.99, 0.01, 0.2 , IncrementalConformanceChecker.Goals.DEVIATIONS, true, IncrementalConformanceChecker.Heuristics.NONALIGNING_KNOWN, false, false));
+			list.add(new IccParameter(0.01, 0.99, 0.01, 0.3 , IncrementalConformanceChecker.Goals.DEVIATIONS, true, IncrementalConformanceChecker.Heuristics.NONALIGNING_KNOWN, false, false));
+			list.add(new IccParameter(0.05, 0.99, 0.01, 0.2 , IncrementalConformanceChecker.Goals.DEVIATIONS, true, IncrementalConformanceChecker.Heuristics.NONALIGNING_KNOWN, false, false));
 			
 			//deviations
-			list.add(new IccParameter(0.01, 0.99, 0.01, 0.1 , IncrementalConformanceChecker.Goals.DEVIATIONS, false, false, false));
+			/*list.add(new IccParameter(0.01, 0.99, 0.01, 0.1 , IncrementalConformanceChecker.Goals.DEVIATIONS, false, false, false));
 			list.add(new IccParameter(0.01, 0.95, 0.01, 0.1 , IncrementalConformanceChecker.Goals.DEVIATIONS, false, false, false));
 			list.add(new IccParameter(0.01, 0.90, 0.01, 0.1 , IncrementalConformanceChecker.Goals.DEVIATIONS, false, false, false));
 			list.add(new IccParameter(0.05, 0.99, 0.01, 0.1 , IncrementalConformanceChecker.Goals.DEVIATIONS, false, false, false));
@@ -591,7 +632,7 @@ public class Evaluation{
 			list.add(new IccParameter(0.10, 0.90, 0.01, 0.3 , IncrementalConformanceChecker.Goals.DEVIATIONS, true, IncrementalConformanceChecker.Heuristics.NONALIGNING_KNOWN, false, false));
 			list.add(new IccParameter(0.01, 0.99, 0.05, 0.3 , IncrementalConformanceChecker.Goals.DEVIATIONS, true, IncrementalConformanceChecker.Heuristics.NONALIGNING_KNOWN, false, false));
 			list.add(new IccParameter(0.01, 0.99, 0.10, 0.3 , IncrementalConformanceChecker.Goals.DEVIATIONS, true, IncrementalConformanceChecker.Heuristics.NONALIGNING_KNOWN, false, false));
-			
+			*/
 			int total=list.size()*repetitions;
 			int cnt=1;
 			for(IccParameter parameter : list) {
@@ -1121,8 +1162,8 @@ public class Evaluation{
 	 */
 	public static  TransEvClassMapping computeTransEventMapping(XLog log, PetrinetGraph net) {
 		XEventClass evClassDummy = EvClassLogPetrinetConnectionFactoryUI.DUMMY;
-		TransEvClassMapping mapping = new TransEvClassMapping(XLogInfoImpl.STANDARD_CLASSIFIER, evClassDummy);
-		XEventClasses ecLog = XLogInfoFactory.createLogInfo(log, XLogInfoImpl.STANDARD_CLASSIFIER).getEventClasses();
+		TransEvClassMapping mapping = new TransEvClassMapping(XLogInfoImpl.NAME_CLASSIFIER, evClassDummy);
+		XEventClasses ecLog = XLogInfoFactory.createLogInfo(log, XLogInfoImpl.NAME_CLASSIFIER).getEventClasses();
 		for (Transition t : net.getTransitions()) {
 			//System.out.println("Find Partner for: "+t.getLabel());
 			//for (XEventClass x: ecLog.getClasses()) {
