@@ -1,7 +1,7 @@
 # Incremental Conformance Checking
 #### Project Status: [Active]
 
-This repository contains the source code, the end-user plugins and the evaluation result files described in the paper ["Estimating Process Conformance by Trace Sampling and Result Approximation"](https://www.researchgate.net/publication/333209975_Estimating_Process_Conformance_by_Trace_Sampling_and_Result_Approximation).
+This repository contains the source code, the end-user plugins and the evaluation result files for incremental conformance checking, as proposed in the paper ["Estimating Process Conformance by Trace Sampling and Result Approximation"](https://www.researchgate.net/publication/333209975_Estimating_Process_Conformance_by_Trace_Sampling_and_Result_Approximation).
 
 The approaches provided include:
 * Three conformance measures: Fitness, deviating activities and non-conformant resource attributes
