@@ -29,7 +29,7 @@ In the project, two plugins are provided:
 This work has received funding from the Deutsche Forschungsgemeinschaft [DFG](https://www.dfg.de/), grant number [421921612](https://gepris.dfg.de/gepris/projekt/421921612?context=projekt&task=showDetail&id=421921612&), and the [Alexander von Humboldt Foundation](http://www.humboldt-foundation.de/web/start.html).
 
 ## Contact
-* martin.bauer@hu-berlin.de
+martin.bauer@hu-berlin.de
 
 ### License
 We provide our code, under the MIT license.
