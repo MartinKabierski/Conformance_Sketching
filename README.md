@@ -16,8 +16,9 @@ The methods are implemented as end-user plugins for the [Process Mining Toolkit]
 1. Clone this repo (for help see this [tutorial](https://help.github.com/articles/cloning-a-repository/)).
 2. Install the [Eclipse IDE](https://www.eclipse.org/downloads/) and import th IncrementalPM directory as a new project.
 3. In Eclipse, install [Apache IvyDE](https://ant.apache.org/ivy/ivyde/), and resolve all dependencies of the imported project.
-4. You are done - you may run your local copy of ProM using either "ProM Package Manager (IncrementalPM).launch" for the package Manager or "ProM with UITopia (IncrementalPM).launch" for ProM itself. Note, that you do not need to install the standalone version of ProM, as the project already includes a local copy of ProM.
+4. You are done - you may run your local copy of ProM using either "ProM Package Manager (IncrementalPM).launch" for the package Manager or "ProM with UITopia (IncrementalPM).launch" for ProM itself. 
 
+Note, that you do not need to install the standalone version of ProM, as the project already includes a local copy of ProM.
 For further instructions on the usage of ProM itself, or the deployment using other IDE's than Eclipse, please see the [ProM Getting started Page](http://www.promtools.org/doku.php?id=gettingstarted:start) or consider contacting the [ProM Forum](https://www.win.tue.nl/promforum/categories).
 
 ### Running the plugins
