@@ -23,7 +23,7 @@ For further instructions on the usage of ProM itself, or the deployment using ot
 
 ### Running the plugins
 In the project, two plugins are provided:
-* "Check global Conformance wiIncremental Conformance Checker" - conducts a run of the sample-based conformance checking algorithm
+* "Check global Conformance with Incremental Conformance Checker" - conducts a run of the sample-based conformance checking algorithm
 * "Evaluate Incremental Conformance Checker" - conducts the controlled experiments used for evaluation of the implemented approaches. The set of result files used in the paper, as well as the scripts for the creation of the plots are provided in the directory "evaluation_results".
 
 ## Acknowledgements
