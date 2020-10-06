@@ -9,9 +9,11 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.lang3.tuple.Pair;
+import org.deckfour.xes.classification.XEventClassifier;
 import org.deckfour.xes.model.XAttributeMap;
 import org.deckfour.xes.model.XTrace;
 import org.processmining.models.graphbased.directed.petrinet.PetrinetGraph;
+import org.processmining.plugins.connectionfactories.logpetrinet.TransEvClassMapping;
 import org.processmining.plugins.petrinet.replayresult.StepTypes;
 
 import conformance.IncrementalConformanceChecker.Heuristics;
@@ -24,8 +26,8 @@ public class ApproxResourceDeviationAnalyzer_NONALIGNING extends ResourceDeviati
 	Map<String,Set<String>> knownViolations;
 	
 	
-	public ApproxResourceDeviationAnalyzer_NONALIGNING(IccParameter parameter, ResourceAssignment resAssignment, PetrinetGraph net) {
-		super(parameter, resAssignment, net);
+	public ApproxResourceDeviationAnalyzer_NONALIGNING(IccParameter parameter, ResourceAssignment resAssignment, PetrinetGraph net, TransEvClassMapping mapping, XEventClassifier classifier) {
+		super(parameter, resAssignment, net, mapping, classifier);
 		this.knownViolations = new ConcurrentHashMap<String,Set<String>>();
 	}
 

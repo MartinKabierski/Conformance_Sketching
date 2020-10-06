@@ -5,10 +5,12 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang3.tuple.Pair;
+import org.deckfour.xes.classification.XEventClassifier;
 import org.deckfour.xes.model.XAttributeMap;
 import org.deckfour.xes.model.XEvent;
 import org.deckfour.xes.model.XTrace;
 import org.processmining.models.graphbased.directed.petrinet.PetrinetGraph;
+import org.processmining.plugins.connectionfactories.logpetrinet.TransEvClassMapping;
 import org.processmining.plugins.petrinet.replayresult.PNRepResult;
 import org.processmining.plugins.petrinet.replayresult.StepTypes;
 
@@ -23,8 +25,8 @@ public class ResourceDeviationAnalyzer extends IncrementalTraceAnalyzer<Map<Stri
 	ResourceAssignment resAssignment;
 	//Map<String, List<StepTypes>> stepTypes;
 
-	public ResourceDeviationAnalyzer(IccParameter parameter, ResourceAssignment resAssignment, PetrinetGraph net) {
-		super(parameter, net);
+	public ResourceDeviationAnalyzer(IccParameter parameter, ResourceAssignment resAssignment, PetrinetGraph net, TransEvClassMapping mapping, XEventClassifier classifier) {
+		super(parameter, net, mapping, classifier);
 		this.resAssignment=resAssignment;
 		//this.stepTypes = new HashMap<String, List<StepTypes>>();
 		this.conformanceCalculator = new ResourceDeviationConformanceCalculator();

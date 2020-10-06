@@ -5,6 +5,7 @@ import java.util.concurrent.ExecutionException;
 
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
+import org.deckfour.xes.classification.XEventClassifier;
 import org.deckfour.xes.model.XAttributeMap;
 import org.deckfour.xes.model.XLog;
 import org.deckfour.xes.model.XTrace;
@@ -41,9 +42,12 @@ public abstract class IncrementalTraceAnalyzer<T>{
 	protected Marking initialMarking;
 	protected Marking finalMarking;
 	
+	protected PetrinetGraph net;
+	protected XEventClassifier classifier;
+	protected TransEvClassMapping mapping;
 	
 	
-	public IncrementalTraceAnalyzer(IccParameter parameter, PetrinetGraph net) {
+	public IncrementalTraceAnalyzer(IccParameter parameter, PetrinetGraph net, TransEvClassMapping mapping, XEventClassifier classifier) {
 		//this.replayer=replayer;
 		this.parameter=parameter;
 		this.results=new TraceAnalysisResultMap<T>();
@@ -55,6 +59,10 @@ public abstract class IncrementalTraceAnalyzer<T>{
 		//helper functions for replayer creation
 		initialMarking = getInitialMarking(net);
 		finalMarking = getFinalMarking(net);
+		
+		this.net = net;
+		this.classifier = classifier;
+		this.mapping = mapping;
 	}
 	
 	
@@ -66,11 +74,10 @@ public abstract class IncrementalTraceAnalyzer<T>{
 	 * @param logAttributes
 	 * @return whether trace induces significant change on global conformance
 	 */
-	public boolean analyzeTrace(XTrace trace, PetrinetGraph net, TransEvClassMapping mapping, XAttributeMap logAttributes) {
+	public boolean analyzeTrace(XTrace trace, XAttributeMap logAttributes) {
 		XLog traceAsLog=new XLogImpl(logAttributes);
 		traceAsLog.add(trace);
-		
-		this.cnt++;
+		increaseThreadCnt();
 		
 		if(this.results.contains(trace)) {
 			//System.out.println("Trace already known: "+TraceRepresentations.getActivitySequence(trace));
@@ -80,10 +87,11 @@ public abstract class IncrementalTraceAnalyzer<T>{
 			//T  = this.retrieveConformanceInformation(trace, replayResult);
 			TraceAnalysisResult<T> result = new TraceAnalysisResult<T>(trace, false, conformanceInformation, results.get(trace).getReplayResult());
 			double distance = this.updateConformance(result);
+			//System.out.println(distance);
 			return distance>this.parameter.getEpsilon();
 		}
 		this.totalVariants++;
-		Replayer replayer = ReplayerFactory.createReplayer(net, traceAsLog, mapping, true, this.initialMarking, this.finalMarking);
+		Replayer replayer = ReplayerFactory.createReplayer(this.net, traceAsLog, this.mapping, this.classifier, true, this.initialMarking, this.finalMarking);
 		if(this.parameter.isApproximate())
 			return approximateConformance(trace, net, logAttributes, replayer);
 		else {
@@ -97,6 +105,12 @@ public abstract class IncrementalTraceAnalyzer<T>{
 	
 	
 	
+	private synchronized void increaseThreadCnt() {
+		this.cnt++;		
+	}
+
+
+
 	/**
 	 * template algorithm for approximation-based incremental conformance checking
 	 * @param trace

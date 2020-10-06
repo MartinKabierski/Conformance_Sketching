@@ -31,6 +31,7 @@ public class ResourceAssignmentComputer {
 		
 		return assignment;
 	}
+
 	
 	public Set<String> determineAuthorizedResources(XLog log, String activity) {
 		Multiset<String> executionCounts = TreeMultiset.create();

@@ -2,10 +2,13 @@ package qualitychecking;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.deckfour.xes.model.XTrace;
+import org.processmining.framework.util.Pair;
 
 public class QualityCheckManager {
 
@@ -13,13 +16,23 @@ public class QualityCheckManager {
 	List<String> attributes;
 	boolean isInternal;
 	int times_triggered = 0;
+	double alpha;
 	
 	public QualityCheckManager(boolean isInternal) {
 		this.valueDistributions = new ArrayList<>();
 		this.attributes = new ArrayList<>();
 		this.isInternal = isInternal;
+		this.alpha = 0.05;
+	}
+	
+	public QualityCheckManager(boolean isInternal, double alpha) {
+		this.valueDistributions = new ArrayList<>();
+		this.attributes = new ArrayList<>();
+		this.isInternal = isInternal;
+		this.alpha = alpha;
 	}
 	//TODO split into external and internal class
+	
 	
 	public void addDirectlyFollowsChecking() {
 		this.valueDistributions.add(new DirectlyFollowsDistribution());
@@ -72,10 +85,8 @@ public class QualityCheckManager {
 		return significantChange;
 	}
 	
-	//TODO: why alpha?
-	//TODO: Han: alpha is statistical significance, so I think that makes sense here
-	//TODO: HanOneDayLater: actually I'm no longer sure if this is appropriate. Think we should discuss this
-	public boolean hasSignificantDifference(Collection<XTrace> validationSample, double alpha) {
+	
+	public boolean hasSignificantDifference(Collection<XTrace> validationSample) {
 		for (AbstractValueDistribution currentDistrib : valueDistributions) {
 			// compute value distributions of validation sample
 			AbstractValueDistribution validationDistrib = currentDistrib.emptyCopy();
@@ -83,8 +94,9 @@ public class QualityCheckManager {
 				validationDistrib.addTrace(trace);
 			}
 			// compare distributions
-			double significanceLevel = currentDistrib.computeExternalStatistic(validationDistrib);
-			if (significanceLevel > alpha) {
+			double p = currentDistrib.computeExternalStatistic(validationDistrib);
+			System.out.println(p+", "+(this.alpha)+","+(p<this.alpha?" BIASED":" NOT BIASED"));
+			if (p < this.alpha) {
 				return true;
 			}
 		}
@@ -106,6 +118,10 @@ public class QualityCheckManager {
 	
 	public int timesTriggered() {
 		return this.times_triggered;
+	}
+	
+	public double getAlpha() {
+		return this.alpha;
 	}
 	
 	public boolean hasDirectlyFollowsChecker() {
@@ -143,6 +159,4 @@ public class QualityCheckManager {
 		}
 		this.valueDistributions = empty;
 	}
-	
-	
 }

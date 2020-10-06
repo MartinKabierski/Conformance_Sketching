@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.lang3.tuple.Pair;
+import org.deckfour.xes.classification.XEventClassifier;
 import org.deckfour.xes.model.XAttributeMap;
 import org.deckfour.xes.model.XTrace;
 import org.processmining.models.graphbased.directed.petrinet.PetrinetGraph;
@@ -32,8 +33,8 @@ public class ApproxDeviationAnalyzer_NONALIGNING extends DeviationAnalyzer {
 	Set<String> knownTrueDeviations;
 	HashMap <String, String> eventActivityMapping;
 	
-	public ApproxDeviationAnalyzer_NONALIGNING(IccParameter parameter, TransEvClassMapping mapping, PetrinetGraph net) {
-		super(parameter, mapping, net);
+	public ApproxDeviationAnalyzer_NONALIGNING(IccParameter parameter, TransEvClassMapping mapping, PetrinetGraph net, XEventClassifier classifier) {
+		super(parameter, mapping, net, classifier);
 		this.knownTrueDeviations = new HashSet<String>();
 		this.eventActivityMapping = new HashMap<String, String>();
 

@@ -3,9 +3,11 @@ package conformance.traceAnalysis.fitness;
 import java.util.List;
 
 import org.apache.commons.lang3.tuple.Pair;
+import org.deckfour.xes.classification.XEventClassifier;
 import org.deckfour.xes.model.XAttributeMap;
 import org.deckfour.xes.model.XTrace;
 import org.processmining.models.graphbased.directed.petrinet.PetrinetGraph;
+import org.processmining.plugins.connectionfactories.logpetrinet.TransEvClassMapping;
 import org.processmining.plugins.petrinet.replayresult.PNRepResult;
 
 import conformance.traceAnalysis.IncrementalTraceAnalyzer;
@@ -15,8 +17,8 @@ import ressources.TraceAnalysisResult;
 
 public class FitnessAnalyzer extends IncrementalTraceAnalyzer<Double> {
 	
-	public FitnessAnalyzer(IccParameter parameters, PetrinetGraph net) {
-		super(parameters, net);
+	public FitnessAnalyzer(IccParameter parameters, PetrinetGraph net, TransEvClassMapping mapping, XEventClassifier classifier) {
+		super(parameters, net, mapping, classifier);
 		this.conformanceCalculator = new FitnessConformanceCalculator();
 	}
 	

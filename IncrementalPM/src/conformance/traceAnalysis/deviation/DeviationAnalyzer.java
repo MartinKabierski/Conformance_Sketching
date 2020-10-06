@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang3.tuple.Pair;
+import org.deckfour.xes.classification.XEventClassifier;
 import org.deckfour.xes.model.XAttributeMap;
 import org.deckfour.xes.model.XTrace;
 import org.processmining.models.graphbased.directed.petrinet.PetrinetGraph;
@@ -24,11 +25,9 @@ import utils.TraceRepresentations;
  *
  */
 public class DeviationAnalyzer extends IncrementalTraceAnalyzer<Map<String, Double>> {
-	TransEvClassMapping mapping;
 	
-	public DeviationAnalyzer(IccParameter parameter, TransEvClassMapping mapping, PetrinetGraph net) {
-		super(parameter, net);
-		this.mapping = mapping;
+	public DeviationAnalyzer(IccParameter parameter, TransEvClassMapping mapping, PetrinetGraph net, XEventClassifier classifier) {
+		super(parameter, net, mapping, classifier);
 		this.conformanceCalculator = new DeviationConformanceCalculator();
 	}
 	

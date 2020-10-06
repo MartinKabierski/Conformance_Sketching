@@ -1,5 +1,6 @@
 package conformance.traceAnalysis;
 
+import org.deckfour.xes.classification.XEventClassifier;
 import org.deckfour.xes.model.XLog;
 import org.processmining.models.graphbased.directed.petrinet.PetrinetGraph;
 import org.processmining.plugins.connectionfactories.logpetrinet.TransEvClassMapping;
@@ -27,32 +28,32 @@ public class TraceAnalyzerFactory {
 	 * @param resourceAssignment
 	 * @return
 	 */
-	public static IncrementalTraceAnalyzer<?> createTraceAnalyzer(IccParameter parameter, TransEvClassMapping mapping, XLog log, PetrinetGraph net, ResourceAssignment resourceAssignment) {
+	public static IncrementalTraceAnalyzer<?> createTraceAnalyzer(IccParameter parameter, TransEvClassMapping mapping, XEventClassifier classifier, XLog log, PetrinetGraph net, ResourceAssignment resourceAssignment) {
 		if (parameter.getGoal().equals(IncrementalConformanceChecker.Goals.FITNESS)   && !parameter.isApproximate()) {
-			return new FitnessAnalyzer(parameter, net);
+			return new FitnessAnalyzer(parameter, net, mapping, classifier);
 		}
 		if (parameter.getGoal().equals(IncrementalConformanceChecker.Goals.FITNESS)   &&  parameter.isApproximate()) {
-			return new ApproxFitnessAnalyzer(parameter, log, net, mapping);
+			return new ApproxFitnessAnalyzer(parameter, log, net, mapping, classifier);
 		}
 		if (parameter.getGoal().equals(IncrementalConformanceChecker.Goals.DEVIATIONS) && !parameter.isApproximate()) {
-			return new DeviationAnalyzer(parameter, mapping, net);
+			return new DeviationAnalyzer(parameter, mapping, net, classifier);
 		}
 		if (parameter.getGoal().equals(IncrementalConformanceChecker.Goals.DEVIATIONS) &&  parameter.isApproximate()) {
 			if(parameter.getApproximationHeuristic().equals(IncrementalConformanceChecker.Heuristics.PREFIXSUFFIX))
-				return new ApproxDeviationAnalyzer_PREFIXSUFFIX(parameter, mapping, net);
+				return new ApproxDeviationAnalyzer_PREFIXSUFFIX(parameter, mapping, net, classifier);
 			else if(parameter.getApproximationHeuristic().equals(IncrementalConformanceChecker.Heuristics.NONALIGNING_ALL))
-				return new ApproxDeviationAnalyzer_NONALIGNING(parameter, mapping, net);		
+				return new ApproxDeviationAnalyzer_NONALIGNING(parameter, mapping, net, classifier);		
 			else if(parameter.getApproximationHeuristic().equals(IncrementalConformanceChecker.Heuristics.NONALIGNING_KNOWN))
-				return new ApproxDeviationAnalyzer_NONALIGNING(parameter, mapping, net);		
+				return new ApproxDeviationAnalyzer_NONALIGNING(parameter, mapping, net, classifier);		
 		}
 		if (parameter.getGoal().equals(IncrementalConformanceChecker.Goals.RESOURCES) && !parameter.isApproximate()) {
-			return new ResourceDeviationAnalyzer(parameter, resourceAssignment, net);
+			return new ResourceDeviationAnalyzer(parameter, resourceAssignment, net, mapping, classifier);
 		}
 		if (parameter.getGoal().equals(IncrementalConformanceChecker.Goals.RESOURCES) &&  parameter.isApproximate()) {
 			if(parameter.getApproximationHeuristic().equals(IncrementalConformanceChecker.Heuristics.NONALIGNING_ALL))
-				return new ApproxResourceDeviationAnalyzer_NONALIGNING(parameter, resourceAssignment, net);
+				return new ApproxResourceDeviationAnalyzer_NONALIGNING(parameter, resourceAssignment, net, mapping, classifier);
 			else if(parameter.getApproximationHeuristic().equals(IncrementalConformanceChecker.Heuristics.NONALIGNING_KNOWN))
-				return new ApproxResourceDeviationAnalyzer_NONALIGNING(parameter, resourceAssignment, net);
+				return new ApproxResourceDeviationAnalyzer_NONALIGNING(parameter, resourceAssignment, net, mapping, classifier);
 		}
 		return null;
 	}

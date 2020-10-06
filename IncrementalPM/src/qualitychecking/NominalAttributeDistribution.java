@@ -89,9 +89,11 @@ public class NominalAttributeDistribution implements AbstractValueDistribution {
 			if (this.valueCountsAbsolute.containsKey(key)) {
 				observed1[i] = this.valueCountsAbsolute.get(key).longValue();
 			}
+			else observed1[i] =0;
 			if (validationDistributionCast.valueCountsAbsolute.containsKey(key)) {
 				observed2[i] = validationDistributionCast.valueCountsAbsolute.get(key).longValue();
 			}
+			else observed2[i] =0;			
 			i++;
 		}
 		ChiSquareTest cst = new ChiSquareTest();

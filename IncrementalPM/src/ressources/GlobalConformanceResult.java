@@ -17,6 +17,7 @@ public class GlobalConformanceResult {
 	private int totalVariants;
 	private int approximatedVariants;
 	private int approximatedThenCalculated;
+	public double fitnessAtFirst;
 
 	public GlobalConformanceResult() {
 		fitness=-1.0;
@@ -29,6 +30,7 @@ public class GlobalConformanceResult {
 		this.totalVariants=0;
 		this.approximatedVariants=0;
 		this.approximatedThenCalculated=0;
+		this.fitnessAtFirst=0;
 	}
 	
 	public void setApproxCalc(int value) {

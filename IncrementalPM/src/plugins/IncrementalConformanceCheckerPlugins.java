@@ -1,13 +1,22 @@
 package plugins;
 
+import java.util.Map.Entry;
 import java.util.concurrent.ExecutionException;
 
+import org.deckfour.xes.classification.XEventClass;
+import org.deckfour.xes.classification.XEventClasses;
+import org.deckfour.xes.classification.XEventClassifier;
+import org.deckfour.xes.classification.XEventNameClassifier;
+import org.deckfour.xes.info.XLogInfo;
+import org.deckfour.xes.info.XLogInfoFactory;
+import org.deckfour.xes.info.impl.XLogInfoImpl;
 import org.deckfour.xes.model.XLog;
 import org.processmining.contexts.uitopia.UIPluginContext;
 import org.processmining.contexts.uitopia.annotations.UITopiaVariant;
 import org.processmining.framework.plugin.annotations.Plugin;
 import org.processmining.framework.plugin.annotations.PluginVariant;
 import org.processmining.models.graphbased.directed.petrinet.PetrinetGraph;
+import org.processmining.models.graphbased.directed.petrinet.elements.Transition;
 import org.processmining.plugins.connectionfactories.logpetrinet.TransEvClassMapping;
 import org.processmining.plugins.petrinet.replayer.ui.PNReplayerUI;
 
@@ -31,23 +40,25 @@ public class IncrementalConformanceCheckerPlugins{
 	@UITopiaVariant(affiliation = "Humboldt-University Berlin", author = "Martin Bauer", email = "bauemart@hu-berlin.de", uiLabel = UITopiaVariant.USEPLUGIN)
 	@PluginVariant(variantLabel = "Check global Conformance with Incremental Conformance Checker", requiredParameterLabels = {0,1})
 	public GlobalConformanceResult CheckForGlobalConformanceWithICCUI(final UIPluginContext context, PetrinetGraph net, XLog log) throws Exception {
-		//TODO use UI
+		//TODO parameter UI
 		double delta=0.01;
 		double alpha=0.99;
 		double epsilon=0.01;
 		double k=0.2;
 		Goals goal=IncrementalConformanceChecker.Goals.FITNESS;
-		Heuristics approximationHeuristic = IncrementalConformanceChecker.Heuristics.NONALIGNING_ALL;
-		boolean useApproximation = true;
+		Heuristics approximationHeuristic = IncrementalConformanceChecker.Heuristics.NONALIGNING_KNOWN;
+		boolean useApproximation = false;
 		boolean checkInternalQuality = false;
 		boolean checkExternalQuality = false;
-		PNReplayerUI pnReplayerUI = new PNReplayerUI();
+		IncrementalPNReplayerUI pnReplayerUI = new IncrementalPNReplayerUI();
 		Object[] resultConfiguration = pnReplayerUI.getConfiguration(context, net, log);
 		TransEvClassMapping mapping = (TransEvClassMapping) resultConfiguration[PNReplayerUI.MAPPING];
+		
+		//TODO make classifier accessible in resultconfiguration of parameter UI
+		XEventClassifier classifier = pnReplayerUI.classifier;
+		System.out.println("Used Classifier: "+classifier.name());
+		
 		XLog copyLog = (XLog) log.clone();
-		
-
-		
 		IccParameter iccParameters = new IccParameter(delta, alpha, epsilon, k, goal, useApproximation, approximationHeuristic, checkInternalQuality, checkExternalQuality);
 
 		QualityCheckManager internalQualityCheckManager = new QualityCheckManager(true);
@@ -73,18 +84,18 @@ public class IncrementalConformanceCheckerPlugins{
 		ResourceAssignment resourceAssignment = new ResourceAssignment();
 
 		//Replayer replayer = ReplayerFactory.createReplayer(net, copyLog, mapping, true);
-		IncrementalTraceAnalyzer<?> analyzer = TraceAnalyzerFactory.createTraceAnalyzer(iccParameters, mapping, log, net, resourceAssignment);
-		GlobalConformanceResult result = checkForGlobalConformanceWithICC(context, net, copyLog, mapping, analyzer, iccParameters, internalQualityCheckManager, externalQualityCheckManager);
+		IncrementalTraceAnalyzer<?> analyzer = TraceAnalyzerFactory.createTraceAnalyzer(iccParameters, mapping, classifier, log, net, resourceAssignment);
+		GlobalConformanceResult result = checkForGlobalConformanceWithICC(context, net, copyLog, analyzer, iccParameters, internalQualityCheckManager, externalQualityCheckManager);
 
-		//TODO replace with appropriate vizualizer
+		//TODO visualizer
 		System.out.println(result.toString());
 		System.out.println();
 		return result;
 	} 
-		
-	private GlobalConformanceResult checkForGlobalConformanceWithICC(UIPluginContext context, PetrinetGraph net, XLog log, TransEvClassMapping mapping,
+
+	private GlobalConformanceResult checkForGlobalConformanceWithICC(UIPluginContext context, PetrinetGraph net, XLog log, 
 			IncrementalTraceAnalyzer<?> analyzer, IccParameter iccParameters, QualityCheckManager internalQualityCheckManager, QualityCheckManager externalQualityCheckManager) throws AStarException, InterruptedException, ExecutionException {
 		IncrementalConformanceChecker icc = new IncrementalConformanceChecker(analyzer, iccParameters);
-		return icc.apply(context, log, net, mapping);
+		return icc.apply(context, log, net, IncrementalConformanceChecker.SamplingMode.BINOMIAL);
 	}
 }

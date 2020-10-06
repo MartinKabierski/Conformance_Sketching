@@ -10,6 +10,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import org.apache.commons.lang3.tuple.Pair;
+import org.deckfour.xes.classification.XEventClassifier;
 import org.deckfour.xes.model.XAttributeMap;
 import org.deckfour.xes.model.XTrace;
 import org.processmining.models.graphbased.directed.petrinet.PetrinetGraph;
@@ -29,8 +30,8 @@ import utils.TraceRepresentations;
  */
 public class ApproxDeviationAnalyzer_PREFIXSUFFIX extends DeviationAnalyzer {
 
-	public ApproxDeviationAnalyzer_PREFIXSUFFIX(IccParameter parameter, TransEvClassMapping mapping, PetrinetGraph net) {
-		super(parameter, mapping, net);
+	public ApproxDeviationAnalyzer_PREFIXSUFFIX(IccParameter parameter, TransEvClassMapping mapping, PetrinetGraph net, XEventClassifier classifier) {
+		super(parameter, mapping, net, classifier);
 	}
 
 	protected boolean kSimilar(XTrace trace, Pair<TraceAnalysisResult<Map<String, Double>>, TraceEditDistance> referenceTraceInformation) {

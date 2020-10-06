@@ -1,16 +1,7 @@
-import argparse
-import sys
 import pandas as pd
 import matplotlib.pyplot as plt
-import numpy as np
-import re
-from collections import defaultdict
-from math import log10
 import matplotlib.patches as mpatches
 import statistics
-
-#FIX CORRECT PLOTTING, IF RUNTIME IS LARGER THAN BASELINE
-NO_THREADS_BASELINE = "2"
 
 def main():
         font = {'font.family' : 'normal',
@@ -25,7 +16,7 @@ def main():
         #build a dataframe for each result file
         #original
         pra_baseline=pd.read_csv("./results/prAm6_baseline.csv", sep=';')
-        prb_baseline=pd.read_csv("./results/PrBm6_baseline.csv", sep=';')
+        prb_baseline=pd.read_csv("./results/prBm6_baseline.csv", sep=';')
         prc_baseline=pd.read_csv("./results/prCm6_baseline.csv", sep=';')
         prd_baseline=pd.read_csv("./results/prDm6_baseline.csv", sep=';')
         pre_baseline=pd.read_csv("./results/prEm6_baseline.csv", sep=';')
@@ -115,25 +106,13 @@ def main():
         print("traces")
         for x in traces_list:
                 print(statistics.mean(x))
-        '''
-        f, (ax1) = plt.subplots(1, 1, sharey=True)
-        #ax1.set_yscale('log')
-        ax1.set_ylabel('Fraction of Traces Sampled')
-        ax1.axhline(1, color='b', linestyle='--')
-        ax1.boxplot(traces_approx_list)
-        ax1.set_xticklabels(x_ticks_labels, rotation=0, fontsize=18)
-        ax1.tick_params(length=6, width=2)
-        ax1.tick_params(which='minor', length=4, width=1)
-        #f.show()
-        f.savefig("./benchmark_traces_approximated.pdf", bbox_inches='tight')
-        '''
+
 
         #plot time
         f, (ax1) = plt.subplots(1, 1, sharey=True)
         #ax1.set_yscale('log')
         ax1.set_ylabel('Runtime (relative)')
         ax1.set_ylim(0.0, 1.05)
-        #ax1.set_ylim(0.0, 20.05)
         ax1.set_yticks([0.0, 0.20, 0.4, 0.6, 0.8, 1.0])
         ax1.set_yticklabels(["0%", "20%", "40%", "60%", "80%", "100%"])
         # ax1.axhline(1, color='b', linestyle='--')
@@ -148,25 +127,13 @@ def main():
         for x in time_list:
                 print(statistics.mean(x))
 
-        
-        '''
-        f, (ax1) = plt.subplots(1, 1, sharey=True)
-        #ax1.set_yscale('log')
-        ax1.set_ylabel('Runtime (fraction)')
-        # ax1.axhline(1, color='b', linestyle='--')
-        ax1.boxplot(time_approx_list)
-        ax1.set_xticklabels(x_ticks_labels, rotation=0, fontsize=18)
-        ax1.tick_params(length=6, width=2)
-        ax1.tick_params(which='minor', length=4, width=1)
-        #f.show()
-        f.savefig("./benchmark_computing_time_approximated.pdf", bbox_inches='tight')
-        '''
 
         #plot fitness
         f, (ax1) = plt.subplots(1, 1, sharey=True)
         ax1.set_ylabel('Fitness')
         ax1.set_yticks([0.5,0.6,0.7, 0.8, 0.9, 1.0])
-        ax1.set_ylim(0.49, 1.01)
+        ax1.set_ylim(0.48, 1.02)
+        ax1.set_xlim(0.5, 7.5)
         ax1.boxplot(fitness_list)
         ax1.plot(orig_fitness_list,'bx',markersize=14, markeredgewidth=1)
         ax1.set_xticklabels(x_ticks_labels, rotation=0, fontsize=18)
@@ -174,24 +141,6 @@ def main():
         ax1.tick_params(which='minor', length=4, width=1)
         #f.show()
         f.savefig("./benchmark_fitness.pdf", bbox_inches='tight')
-        '''
-        f, (ax1) = plt.subplots(1, 1, sharey=True)
-        ax1.set_ylabel('Fitness')
-        ax1.boxplot(fitness_approx_list)
-        ax1.plot(orig_fitness_list,'bx',markersize=14, markeredgewidth=1)
-        ax1.set_xticklabels(x_ticks_labels, rotation=0, fontsize=18)
-        ax1.tick_params(length=6, width=2)
-        ax1.tick_params(which='minor', length=4, width=1)
-        #f.show()
-        f.savefig("./benchmark_fitness_approximated.pdf", bbox_inches='tight')
-        '''
-
-def convert_to_log(input):
-        to_return=[]
-        for x in input:
-                to_return.append([log10(y) for y in x])
-        return to_return
 
 if __name__ == "__main__":
-    #sys.argv = [sys.argv[0], 'ICC_alignment_approx_FINAL', 'alignment_ORIG_FINAL']
-    main()#sys.argv)
+    main()

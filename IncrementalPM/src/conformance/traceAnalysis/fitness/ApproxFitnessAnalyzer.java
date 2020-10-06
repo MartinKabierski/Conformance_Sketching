@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 import org.apache.commons.lang3.tuple.Pair;
+import org.deckfour.xes.classification.XEventClassifier;
 import org.deckfour.xes.model.XAttributeMap;
 import org.deckfour.xes.model.XLog;
 import org.deckfour.xes.model.XTrace;
@@ -23,13 +24,13 @@ import ressources.TraceAnalysisResult;
 public class ApproxFitnessAnalyzer extends FitnessAnalyzer{
 	double petrinetShortestPath;
 	
-	public ApproxFitnessAnalyzer(IccParameter parameters, XLog log, PetrinetGraph net, TransEvClassMapping mapping) {
-		super(parameters, net);
+	public ApproxFitnessAnalyzer(IccParameter parameters, XLog log, PetrinetGraph net, TransEvClassMapping mapping, XEventClassifier classifier) {
+		super(parameters, net, mapping, classifier);
 		this.conformanceCalculator = new FitnessConformanceCalculator();
 		
 		this.petrinetShortestPath=0;
 		//dirty hack - get shortest petri net path once upon creation to circumvent repeated replay during cost approximation
-		Replayer oneTimeReplayer = ReplayerFactory.createReplayer(net, log, mapping, false);
+		Replayer oneTimeReplayer = ReplayerFactory.createReplayer(net, log, mapping, classifier, false);
 		XAttributeMap logAttributes=log.getAttributes();
 		XLog testlog=new XLogImpl(logAttributes);
 		testlog.add(log.get(0));
@@ -47,7 +48,7 @@ public class ApproxFitnessAnalyzer extends FitnessAnalyzer{
 			Pair<TraceAnalysisResult<Double>, TraceEditDistance> referenceTraceInformation,
 			XAttributeMap logAttributes) {
 		//System.out.println("Shortest Petrinet Path: "+this.petrinetShortestPath);
-		//System.out.println("Referenz Result: "+referenceTraceInformation.getLeft().getResult()+", Referenz Länge: "+referenceTraceInformation.getLeft().getTrace().size());
+		//System.out.println("Referenz Result: "+referenceTraceInformation.getLeft().getResult()+", Referenz Lï¿½nge: "+referenceTraceInformation.getLeft().getTrace().size());
 		double referenceTraceCost = (1.0-referenceTraceInformation.getLeft().getResult())*(referenceTraceInformation.getLeft().getTrace().size()+this.petrinetShortestPath);
 		//System.out.println("Referenz Raw Cost: "+referenceTraceCost);
 		

@@ -7,15 +7,19 @@ import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
 import org.deckfour.xes.classification.XEventClass;
 import org.deckfour.xes.classification.XEventClasses;
+import org.deckfour.xes.classification.XEventClassifier;
+import org.deckfour.xes.classification.XEventNameClassifier;
 import org.deckfour.xes.factory.XFactory;
 import org.deckfour.xes.factory.XFactoryRegistry;
 import org.deckfour.xes.in.XParser;
@@ -77,7 +81,6 @@ public class Evaluation{
 	 * @return
 	 * @throws Exception
 	 */
-	//7259, 2434, 
 	long[] SEEDS = {7259, 2434, 1967, 4180, 4300, 3514, 4086, 8993, 3258, 6415};
 
 	
@@ -86,22 +89,19 @@ public class Evaluation{
 	@UITopiaVariant(affiliation = "Humboldt-University Berlin", author = "Martin Bauer", email = "bauemart@hu-berlin.de", uiLabel = UITopiaVariant.USEPLUGIN)
 	@PluginVariant(variantLabel = "TEST - Evaluate Incremental Conformance Checker", requiredParameterLabels = {})
 	public GlobalConformanceResult evalueICC(final UIPluginContext context) throws Exception {
-		//parameterEvaluation(context);
-		//prefixsuffixEvaluation(context);
-		//syntheticEvaluation(context);
-		//resourceDeviationEvaluation(context);
-		//qualityCheckingEvaluation(context);
-		//resourceDeviationEvaluation(context);
-		baselineResultsEvaluation(context);
-		
 		//test(context);
-		
+		baselineResultsEvaluation(context);
+		parameterEvaluation(context);
+		prefixsuffixEvaluation(context);
+		//TODO synthetic with delta=0.01 on C does not finish (here N>500 (logsize))
+		syntheticEvaluation(context);
+		resourceDeviationEvaluation(context);
+		qualityCheckingEvaluation(context);	
 		//sampleSizeEvaluation(context);
 		return null;
 	}
-	
-
-	private void test(UIPluginContext context) throws Exception {
+		
+	private void test(UIPluginContext context) throws Exception { 
 		//String[] inputNames = {"Road_Traffic_Fines_Management_Process"/*, "RTFM_model2"*/};
 		String[] inputNames = {"BPI_Challenge_2012"};
 		//String[] inputNames = {"Detail_Incident_Activity"};
@@ -113,22 +113,29 @@ public class Evaluation{
 			XLog log = loadLog(LOG_PATH);
 			PetrinetGraph net = importPNML(NET_PATH, context);
 			System.out.println("	>Loaded log and net");
-			TransEvClassMapping mapping = computeTransEventMapping(log, net);
-
+			
+			XEventClassifier classifier = deriveClassifierForLog(input);
+			TransEvClassMapping mapping = computeTransEventMapping(input, log, net, classifier);
+			
 			//get resource deviations
 			List<IccParameter> settings = new ArrayList<IccParameter>();
 			//settings.add (new IccParameter(0.01, 0.99, 0.01, 0.2, IncrementalConformanceChecker.Goals.RESOURCES, 	false, false, false));
 			
-//			settings.add (new IccParameter(0.01, 0.99, 0.01, 0.2, IncrementalConformanceChecker.Goals.FITNESS, 		false, false, false));
-//			settings.add (new IccParameter(0.01, 0.99, 0.01, 0.2, IncrementalConformanceChecker.Goals.FITNESS, 		false, false, false));
-//			settings.add (new IccParameter(0.01, 0.99, 0.01, 0.2, IncrementalConformanceChecker.Goals.FITNESS, 		false, false, false));
-//			
-//			settings.add (new IccParameter(0.01, 0.99, 0.01, 0.2, IncrementalConformanceChecker.Goals.FITNESS, 		true,  false, false));
-//			settings.add (new IccParameter(0.01, 0.99, 0.01, 0.2, IncrementalConformanceChecker.Goals.FITNESS, 		true,  false, false));
-//			settings.add (new IccParameter(0.01, 0.99, 0.01, 0.2, IncrementalConformanceChecker.Goals.FITNESS, 		true,  false, false));
-//			
-			//settings.add (new IccParameter(0.1, 0.99, 0.01, 0.2, IncrementalConformanceChecker.Goals.DEVIATIONS, 	false, false, false));
+			settings.add (new IccParameter(0.01, 0.99, 0.01, 0.2, IncrementalConformanceChecker.Goals.FITNESS, 		false, false, false));
+			settings.add (new IccParameter(0.01, 0.99, 0.01, 0.2, IncrementalConformanceChecker.Goals.FITNESS, 		false, false, false));
+			settings.add (new IccParameter(0.01, 0.99, 0.01, 0.2, IncrementalConformanceChecker.Goals.FITNESS, 		false, false, false));
+			/*
+			settings.add (new IccParameter(0.01, 0.99, 0.01, 0.2, IncrementalConformanceChecker.Goals.FITNESS, 		true,  false, false));
+			settings.add (new IccParameter(0.01, 0.99, 0.01, 0.2, IncrementalConformanceChecker.Goals.FITNESS, 		true,  false, false));
+			settings.add (new IccParameter(0.01, 0.99, 0.01, 0.2, IncrementalConformanceChecker.Goals.FITNESS, 		true,  false, false));
+			*/
 			settings.add (new IccParameter(0.01, 0.99, 0.01, 0.2, IncrementalConformanceChecker.Goals.DEVIATIONS, 	false, false, false));
+			settings.add (new IccParameter(0.01, 0.99, 0.01, 0.2, IncrementalConformanceChecker.Goals.DEVIATIONS, 	false, false, false));
+			settings.add (new IccParameter(0.01, 0.99, 0.01, 0.2, IncrementalConformanceChecker.Goals.DEVIATIONS, 	false, false, false));
+			settings.add (new IccParameter(0.01, 0.99, 0.01, 0.2, IncrementalConformanceChecker.Goals.DEVIATIONS, 	false, false, false));
+			settings.add (new IccParameter(0.01, 0.99, 0.01, 0.2, IncrementalConformanceChecker.Goals.DEVIATIONS, 	false, false, false));
+
+			//settings.add (new IccParameter(0.01, 0.99, 0.01, 0.2, IncrementalConformanceChecker.Goals.FITNESS, 	false, false, false));
 			//settings.add (new IccParameter(0.001, 0.99, 0.01, 0.2, IncrementalConformanceChecker.Goals.DEVIATIONS, 	false, false, false));
 			//settings.add (new IccParameter(0.0006, 0.99, 0.01, 0.2, IncrementalConformanceChecker.Goals.DEVIATIONS, 	false, false, false));
 			//settings.add (new IccParameter(0.0006, 0.99, 0.01, 0.2, IncrementalConformanceChecker.Goals.DEVIATIONS, 	false, false, false));
@@ -139,7 +146,23 @@ public class Evaluation{
 			//settings.add (new IccParameter(0.05, 0.99, 0.01, 0.2, IncrementalConformanceChecker.Goals.DEVIATIONS, 	false, false, false));
 			//settings.add (new IccParameter(0.05, 0.99, 0.01, 0.2, IncrementalConformanceChecker.Goals.DEVIATIONS, 	false, false, false));	
 			
-			//settings.add (new IccParameter(0.05, 0.99, 0.01, 0.2, IncrementalConformanceChecker.Goals.DEVIATIONS, 	true, IncrementalConformanceChecker.Heuristics.NONALIGNING_KNOWN, 	false, false));
+			settings.add (new IccParameter(0.01, 0.99, 0.01, 0.1, IncrementalConformanceChecker.Goals.DEVIATIONS, 	true, IncrementalConformanceChecker.Heuristics.NONALIGNING_KNOWN, 	false, false));
+			settings.add (new IccParameter(0.01, 0.99, 0.01, 0.1, IncrementalConformanceChecker.Goals.DEVIATIONS, 	true, IncrementalConformanceChecker.Heuristics.NONALIGNING_KNOWN, 	false, false));
+			settings.add (new IccParameter(0.01, 0.99, 0.01, 0.1, IncrementalConformanceChecker.Goals.DEVIATIONS, 	true, IncrementalConformanceChecker.Heuristics.NONALIGNING_KNOWN, 	false, false));
+			settings.add (new IccParameter(0.01, 0.99, 0.01, 0.1, IncrementalConformanceChecker.Goals.DEVIATIONS, 	true, IncrementalConformanceChecker.Heuristics.NONALIGNING_KNOWN, 	false, false));
+			settings.add (new IccParameter(0.01, 0.99, 0.01, 0.1, IncrementalConformanceChecker.Goals.DEVIATIONS, 	true, IncrementalConformanceChecker.Heuristics.NONALIGNING_KNOWN, 	false, false));
+			settings.add (new IccParameter(0.01, 0.99, 0.01, 0.2, IncrementalConformanceChecker.Goals.DEVIATIONS, 	true, IncrementalConformanceChecker.Heuristics.NONALIGNING_KNOWN, 	false, false));
+			settings.add (new IccParameter(0.01, 0.99, 0.01, 0.2, IncrementalConformanceChecker.Goals.DEVIATIONS, 	true, IncrementalConformanceChecker.Heuristics.NONALIGNING_KNOWN, 	false, false));
+			settings.add (new IccParameter(0.01, 0.99, 0.01, 0.2, IncrementalConformanceChecker.Goals.DEVIATIONS, 	true, IncrementalConformanceChecker.Heuristics.NONALIGNING_KNOWN, 	false, false));
+			settings.add (new IccParameter(0.01, 0.99, 0.01, 0.2, IncrementalConformanceChecker.Goals.DEVIATIONS, 	true, IncrementalConformanceChecker.Heuristics.NONALIGNING_KNOWN, 	false, false));
+			settings.add (new IccParameter(0.01, 0.99, 0.01, 0.2, IncrementalConformanceChecker.Goals.DEVIATIONS, 	true, IncrementalConformanceChecker.Heuristics.NONALIGNING_KNOWN, 	false, false));
+			settings.add (new IccParameter(0.01, 0.99, 0.01, 0.3, IncrementalConformanceChecker.Goals.DEVIATIONS, 	true, IncrementalConformanceChecker.Heuristics.NONALIGNING_KNOWN, 	false, false));
+			settings.add (new IccParameter(0.01, 0.99, 0.01, 0.3, IncrementalConformanceChecker.Goals.DEVIATIONS, 	true, IncrementalConformanceChecker.Heuristics.NONALIGNING_KNOWN, 	false, false));
+			settings.add (new IccParameter(0.01, 0.99, 0.01, 0.3, IncrementalConformanceChecker.Goals.DEVIATIONS, 	true, IncrementalConformanceChecker.Heuristics.NONALIGNING_KNOWN, 	false, false));
+			settings.add (new IccParameter(0.01, 0.99, 0.01, 0.3, IncrementalConformanceChecker.Goals.DEVIATIONS, 	true, IncrementalConformanceChecker.Heuristics.NONALIGNING_KNOWN, 	false, false));
+			settings.add (new IccParameter(0.01, 0.99, 0.01, 0.3, IncrementalConformanceChecker.Goals.DEVIATIONS, 	true, IncrementalConformanceChecker.Heuristics.NONALIGNING_KNOWN, 	false, false));
+
+			
 			//settings.add (new IccParameter(0.05, 0.99, 0.01, 0.2, IncrementalConformanceChecker.Goals.DEVIATIONS, 	true, IncrementalConformanceChecker.Heuristics.NONALIGNING_KNOWN, 	false, false));
 			//settings.add (new IccParameter(0.05, 0.99, 0.01, 0.2, IncrementalConformanceChecker.Goals.DEVIATIONS, 	true, IncrementalConformanceChecker.Heuristics.NONALIGNING_KNOWN, 	false, false));
 			
@@ -162,28 +185,26 @@ public class Evaluation{
 
 			for(IccParameter setting : settings) {
 				XLog copyLog = (XLog) log.clone();
-				//Replayer replayer = ReplayerFactory.createReplayer(net, copyLog, mapping, true);
 				ResourceAssignment resAssignment = new ResourceAssignment();
 				if (setting.getGoal() == IncrementalConformanceChecker.Goals.RESOURCES) {
 					ResourceAssignmentComputer assignmentComputer = new ResourceAssignmentComputer(0.20);
 					resAssignment = assignmentComputer.createResourceAssignment(copyLog);
 				}
-				IncrementalTraceAnalyzer<?> analyzer = TraceAnalyzerFactory.createTraceAnalyzer(setting, mapping, copyLog, net, resAssignment);
+				IncrementalTraceAnalyzer<?> analyzer = TraceAnalyzerFactory.createTraceAnalyzer(setting, mapping, classifier, copyLog, net, resAssignment);
 				long start = System.currentTimeMillis();
 				System.out.println(setting.toString());
-				GlobalConformanceResult result = checkForGlobalConformanceWithICC(context, net, copyLog, mapping, analyzer, setting, null, null,start);
+				GlobalConformanceResult result = checkForGlobalConformanceWithICC(context, net, copyLog, analyzer, setting, null, null,start);
 				long end = System.currentTimeMillis();
 				
 				System.out.println(result.toString());
 				System.out.println(end-start);
 				System.out.println();
 			}
-			//System.setOut(System.out);
 			//get baseline result as comparison
 			Map<String,Double> deviationsRel=new HashMap<String,Double>();
 			
 			XLog copyLog = (XLog) log.clone();
-			Replayer replayer = ReplayerFactory.createReplayer(net, copyLog, mapping, false);
+			Replayer replayer = ReplayerFactory.createReplayer(net, copyLog, mapping, classifier, false);
 			long start = System.currentTimeMillis();
 			PNRepResult result2 = replayer.computePNRepResult(Progress.INVISIBLE, copyLog);
 			long end = System.currentTimeMillis();
@@ -222,6 +243,7 @@ public class Evaluation{
 				}
 			}
 			//deviationsAbs=Maps.asMap(deviatingActivities.elementSet(), elem -> deviatingActivities.count(elem));
+			/*
 			double total = 0.0;
 			for (Entry<String, Double> x : deviations.entrySet()) {
 				total = total + x.getValue();
@@ -243,7 +265,7 @@ public class Evaluation{
 					.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue,
 					(e1, e2) -> e1, LinkedHashMap::new));
 			System.out.println("Relative: "+sortedDeviations);
-			System.out.println("Total number of SyncReplayResults: "+cnt);
+			System.out.println("Total number of SyncReplayResults: "+cnt);*/
 		}
 	}
 
@@ -255,20 +277,22 @@ public class Evaluation{
 //	
 	private void baselineResultsEvaluation(UIPluginContext context) throws Exception{
 		//String[] inputNames = {"RTFM_model2"};
-		String[] inputNames = {"Road_Traffic_Fines_Management_Process", "BPI_Challenge_2012", "Detail_Incident_Activity"};
-		//String[] inputNames = {"Road_Traffic_Fines_Management_Process", "BPI_Challenge_2012", "Detail_Incident_Activity", "prAm6","prBm6","prCm6","prDm6","prEm6","prFm6","prGm6"};
+		//String[] inputNames = {"BPI_Challenge_2012"};
+		String[] inputNames = {"Road_Traffic_Fines_Management_Process", "RTFM_model2", "BPI_Challenge_2012", "Detail_Incident_Activity", "prAm6","prBm6","prCm6","prDm6","prEm6","prFm6","prGm6"};
 		//String[] inputNames = {"prAm6","prBm6","prCm6","prDm6","prEm6","prFm6","prGm6"};
 		System.out.println("Retrieving Baseline Results");
 		for(String input : inputNames) {
 			System.out.println(">"+input);
-			PrintWriter baselineStats = new PrintWriter(input+"_baseline10_TEST.csv", "UTF-8");
+			PrintWriter baselineStats = new PrintWriter(input+"_baseline.csv", "UTF-8");
 			baselineStats.write(String.join(";","time","logSize","fitness","deviations","resources\n"));
 			String NET_PATH = "input/" + input + ".pnml";
 			String LOG_PATH = "input/" + input + ".xes";
 			XLog log = loadLog(LOG_PATH);
 			PetrinetGraph net = importPNML(NET_PATH, context);
 			System.out.println(">Loaded log and net");
-			TransEvClassMapping mapping = computeTransEventMapping(log, net);
+			
+			XEventClassifier classifier = deriveClassifierForLog(input);
+			TransEvClassMapping mapping = computeTransEventMapping(input, log, net, classifier);
 			
 			double fitness=-1.0;
 			Map<String,Double> deviationsRel=new HashMap<String,Double>();
@@ -280,7 +304,7 @@ public class Evaluation{
 				System.out.println("Baseline Evaluation>"+input+" - repetition "+cnt+"/"+repetitions);
 				
 				XLog copyLog = (XLog) log.clone();
-				Replayer replayer = ReplayerFactory.createReplayer(net, copyLog, mapping, false);
+				Replayer replayer = ReplayerFactory.createReplayer(net, copyLog, mapping, classifier, false);
 				
 				long start = System.currentTimeMillis();
 				PNRepResult result = replayer.computePNRepResult(Progress.INVISIBLE, copyLog);
@@ -445,11 +469,8 @@ public class Evaluation{
 	 */
 	private void parameterEvaluation(final UIPluginContext context) throws Exception{
 		int repetitions =10;
+		String[] inputNames = {"Road_Traffic_Fines_Management_Process", "RTFM_model2", "BPI_Challenge_2012", "Detail_Incident_Activity"};
 
-		//String[] inputNames = {"RTFM_model2"};
-		//String[] inputNames = {"Road_Traffic_Fines_Management_Process", "BPI_Challenge_2012"};
-		String[] inputNames = {"BPI_Challenge_2012"};
-		//String[] inputNames = {"Detail_Incident_Activity"};
 
 		System.out.println("Evaluating parameters");
 		for(String input : inputNames) {
@@ -459,12 +480,15 @@ public class Evaluation{
 			XLog log = loadLog(LOG_PATH);
 			PetrinetGraph net = importPNML(NET_PATH, context);
 			System.out.println(">Done");
-			TransEvClassMapping mapping = computeTransEventMapping(log, net);			
-			boolean test = true;
-			PrintWriter fitness 		= new PrintWriter(input+"_fitnessTEST.csv", "UTF-8");
-			PrintWriter fitnessApprox 	= new PrintWriter(input+"_fitnessApproxTEST.csv", "UTF-8");
-			PrintWriter deviation 		= new PrintWriter(input+"_deviationsTEST.csv", "UTF-8");
-			PrintWriter deviationApprox = new PrintWriter(input+"_deviationsApproxTEST.csv", "UTF-8");
+			
+			XEventClassifier classifier = deriveClassifierForLog(input);
+			TransEvClassMapping mapping = computeTransEventMapping(input, log, net, classifier);	
+			System.out.println("test");
+			
+			PrintWriter fitness 		= new PrintWriter(input+"_fitness.csv", "UTF-8");
+			PrintWriter fitnessApprox 	= new PrintWriter(input+"_fitnessApprox.csv", "UTF-8");
+			PrintWriter deviation 		= new PrintWriter(input+"_deviations.csv", "UTF-8");
+			PrintWriter deviationApprox = new PrintWriter(input+"_deviationsApprox.csv", "UTF-8");
 			fitness			.write(String.join(";","delta","alpha","epsilon","k","time","logSize","variants","approximated","fitness","deviations","approximationMode","resources\n"));
 			fitnessApprox	.write(String.join(";","delta","alpha","epsilon","k","time","logSize","variants","approximated","fitness","deviations","approximationMode","resources\n"));
 			deviation		.write(String.join(";","delta","alpha","epsilon","k","time","logSize","variants","approximated","fitness","deviations","approximationMode","resources\n"));
@@ -475,10 +499,7 @@ public class Evaluation{
 			//K = 0.1, 0.2, 0.3
 			ArrayList<IccParameter> list = new ArrayList<IccParameter>();
 			//fitness
-			//list.add(new IccParameter(0.01, 0.99, 0.01, 0.2 , IncrementalConformanceChecker.Goals.FITNESS, true, false, false));
-			//list.add(new IccParameter(0.01, 0.99, 0.01, 0.2 , IncrementalConformanceChecker.Goals.DEVIATIONS, false, false, false));
-			//list.add(new IccParameter(0.01, 0.99, 0.01, 0.2 , IncrementalConformanceChecker.Goals.DEVIATIONS, true, IncrementalConformanceChecker.Heuristics.NONALIGNING_KNOWN, false, false));
-			/*list.add(new IccParameter(0.01, 0.99, 0.01, 0.1 , IncrementalConformanceChecker.Goals.FITNESS, false, false, false));
+			list.add(new IccParameter(0.01, 0.99, 0.01, 0.1 , IncrementalConformanceChecker.Goals.FITNESS, false, false, false));
 			list.add(new IccParameter(0.01, 0.95, 0.01, 0.1 , IncrementalConformanceChecker.Goals.FITNESS, false, false, false));
 			list.add(new IccParameter(0.01, 0.90, 0.01, 0.1 , IncrementalConformanceChecker.Goals.FITNESS, false, false, false));
 			list.add(new IccParameter(0.05, 0.99, 0.01, 0.1 , IncrementalConformanceChecker.Goals.FITNESS, false, false, false));
@@ -489,9 +510,14 @@ public class Evaluation{
 			list.add(new IccParameter(0.10, 0.90, 0.01, 0.1 , IncrementalConformanceChecker.Goals.FITNESS, false, false, false));
 			list.add(new IccParameter(0.01, 0.99, 0.05, 0.1 , IncrementalConformanceChecker.Goals.FITNESS, false, false, false));
 			list.add(new IccParameter(0.01, 0.99, 0.10, 0.1 , IncrementalConformanceChecker.Goals.FITNESS, false, false, false));
+			list.add(new IccParameter(0.05, 0.99, 0.10, 0.1 , IncrementalConformanceChecker.Goals.FITNESS, false, false, false));
+			list.add(new IccParameter(0.10, 0.99, 0.10, 0.1 , IncrementalConformanceChecker.Goals.FITNESS, false, false, false));
+			list.add(new IccParameter(0.01, 0.95, 0.10, 0.1 , IncrementalConformanceChecker.Goals.FITNESS, false, false, false));
+			list.add(new IccParameter(0.01, 0.90, 0.10, 0.1 , IncrementalConformanceChecker.Goals.FITNESS, false, false, false));
 
 			
 			
+
 			//fitness with approximation
 			list.add(new IccParameter(0.01, 0.99, 0.01, 0.1 , IncrementalConformanceChecker.Goals.FITNESS, true, false, false));
 			list.add(new IccParameter(0.01, 0.95, 0.01, 0.1 , IncrementalConformanceChecker.Goals.FITNESS, true, false, false));
@@ -504,6 +530,11 @@ public class Evaluation{
 			list.add(new IccParameter(0.10, 0.90, 0.01, 0.1 , IncrementalConformanceChecker.Goals.FITNESS, true, false, false));
 			list.add(new IccParameter(0.01, 0.99, 0.05, 0.1 , IncrementalConformanceChecker.Goals.FITNESS, true, false, false));
 			list.add(new IccParameter(0.01, 0.99, 0.10, 0.1 , IncrementalConformanceChecker.Goals.FITNESS, true, false, false));
+			list.add(new IccParameter(0.05, 0.99, 0.10, 0.1 , IncrementalConformanceChecker.Goals.FITNESS, true, false, false));
+			list.add(new IccParameter(0.10, 0.99, 0.10, 0.1 , IncrementalConformanceChecker.Goals.FITNESS, true, false, false));
+			list.add(new IccParameter(0.01, 0.95, 0.10, 0.1 , IncrementalConformanceChecker.Goals.FITNESS, true, false, false));
+			list.add(new IccParameter(0.01, 0.90, 0.10, 0.1 , IncrementalConformanceChecker.Goals.FITNESS, true, false, false));
+
 
 			list.add(new IccParameter(0.01, 0.99, 0.01, 0.2 , IncrementalConformanceChecker.Goals.FITNESS, true, false, false));
 			list.add(new IccParameter(0.01, 0.95, 0.01, 0.2 , IncrementalConformanceChecker.Goals.FITNESS, true, false, false));
@@ -516,6 +547,10 @@ public class Evaluation{
 			list.add(new IccParameter(0.10, 0.90, 0.01, 0.2 , IncrementalConformanceChecker.Goals.FITNESS, true, false, false));
 			list.add(new IccParameter(0.01, 0.99, 0.05, 0.2 , IncrementalConformanceChecker.Goals.FITNESS, true, false, false));
 			list.add(new IccParameter(0.01, 0.99, 0.10, 0.2 , IncrementalConformanceChecker.Goals.FITNESS, true, false, false));
+			list.add(new IccParameter(0.05, 0.99, 0.10, 0.2 , IncrementalConformanceChecker.Goals.FITNESS, true, false, false));
+			list.add(new IccParameter(0.10, 0.99, 0.10, 0.2 , IncrementalConformanceChecker.Goals.FITNESS, true, false, false));
+			list.add(new IccParameter(0.01, 0.95, 0.10, 0.2 , IncrementalConformanceChecker.Goals.FITNESS, true, false, false));
+			list.add(new IccParameter(0.01, 0.90, 0.10, 0.2 , IncrementalConformanceChecker.Goals.FITNESS, true, false, false));
 			
 			list.add(new IccParameter(0.01, 0.99, 0.01, 0.3 , IncrementalConformanceChecker.Goals.FITNESS, true, false, false));
 			list.add(new IccParameter(0.01, 0.95, 0.01, 0.3 , IncrementalConformanceChecker.Goals.FITNESS, true, false, false));
@@ -527,8 +562,12 @@ public class Evaluation{
 			list.add(new IccParameter(0.10, 0.95, 0.01, 0.3 , IncrementalConformanceChecker.Goals.FITNESS, true, false, false));
 			list.add(new IccParameter(0.10, 0.90, 0.01, 0.3 , IncrementalConformanceChecker.Goals.FITNESS, true, false, false));
 			list.add(new IccParameter(0.01, 0.99, 0.05, 0.3 , IncrementalConformanceChecker.Goals.FITNESS, true, false, false));
-			list.add(new IccParameter(0.01, 0.99, 0.10, 0.3 , IncrementalConformanceChecker.Goals.FITNESS, true, false, false));*/
-			
+			list.add(new IccParameter(0.01, 0.99, 0.10, 0.3 , IncrementalConformanceChecker.Goals.FITNESS, true, false, false));
+			list.add(new IccParameter(0.05, 0.99, 0.10, 0.3 , IncrementalConformanceChecker.Goals.FITNESS, true, false, false));
+			list.add(new IccParameter(0.10, 0.99, 0.10, 0.3 , IncrementalConformanceChecker.Goals.FITNESS, true, false, false));
+			list.add(new IccParameter(0.01, 0.95, 0.10, 0.3 , IncrementalConformanceChecker.Goals.FITNESS, true, false, false));
+			list.add(new IccParameter(0.01, 0.90, 0.10, 0.3 , IncrementalConformanceChecker.Goals.FITNESS, true, false, false));
+			/*
 			list.add(new IccParameter(0.01, 0.99, 0.01, 0.2 , IncrementalConformanceChecker.Goals.DEVIATIONS, false, false, false));
 			list.add(new IccParameter(0.05, 0.99, 0.01, 0.2 , IncrementalConformanceChecker.Goals.DEVIATIONS, false, false, false));
 			
@@ -541,9 +580,9 @@ public class Evaluation{
 			list.add(new IccParameter(0.01, 0.99, 0.01, 0.2 , IncrementalConformanceChecker.Goals.DEVIATIONS, true, IncrementalConformanceChecker.Heuristics.NONALIGNING_KNOWN, false, false));
 			list.add(new IccParameter(0.01, 0.99, 0.01, 0.3 , IncrementalConformanceChecker.Goals.DEVIATIONS, true, IncrementalConformanceChecker.Heuristics.NONALIGNING_KNOWN, false, false));
 			list.add(new IccParameter(0.05, 0.99, 0.01, 0.2 , IncrementalConformanceChecker.Goals.DEVIATIONS, true, IncrementalConformanceChecker.Heuristics.NONALIGNING_KNOWN, false, false));
-			
+			*/
 			//deviations
-			/*list.add(new IccParameter(0.01, 0.99, 0.01, 0.1 , IncrementalConformanceChecker.Goals.DEVIATIONS, false, false, false));
+			list.add(new IccParameter(0.01, 0.99, 0.01, 0.1 , IncrementalConformanceChecker.Goals.DEVIATIONS, false, false, false));
 			list.add(new IccParameter(0.01, 0.95, 0.01, 0.1 , IncrementalConformanceChecker.Goals.DEVIATIONS, false, false, false));
 			list.add(new IccParameter(0.01, 0.90, 0.01, 0.1 , IncrementalConformanceChecker.Goals.DEVIATIONS, false, false, false));
 			list.add(new IccParameter(0.05, 0.99, 0.01, 0.1 , IncrementalConformanceChecker.Goals.DEVIATIONS, false, false, false));
@@ -554,7 +593,11 @@ public class Evaluation{
 			list.add(new IccParameter(0.10, 0.90, 0.01, 0.1 , IncrementalConformanceChecker.Goals.DEVIATIONS, false, false, false));
 			list.add(new IccParameter(0.01, 0.99, 0.05, 0.1 , IncrementalConformanceChecker.Goals.DEVIATIONS, false, false, false));
 			list.add(new IccParameter(0.01, 0.99, 0.10, 0.1 , IncrementalConformanceChecker.Goals.DEVIATIONS, false, false, false));
-			
+			list.add(new IccParameter(0.05, 0.99, 0.10, 0.1 , IncrementalConformanceChecker.Goals.DEVIATIONS, false, false, false));
+			list.add(new IccParameter(0.10, 0.99, 0.10, 0.1 , IncrementalConformanceChecker.Goals.DEVIATIONS, false, false, false));
+			list.add(new IccParameter(0.01, 0.95, 0.10, 0.1 , IncrementalConformanceChecker.Goals.DEVIATIONS, false, false, false));
+			list.add(new IccParameter(0.01, 0.90, 0.10, 0.1 , IncrementalConformanceChecker.Goals.DEVIATIONS, false, false, false));
+
 			
 			
 			//deviations with approximation - nonaligning_all
@@ -569,6 +612,10 @@ public class Evaluation{
 			list.add(new IccParameter(0.10, 0.90, 0.01, 0.1 , IncrementalConformanceChecker.Goals.DEVIATIONS, true, IncrementalConformanceChecker.Heuristics.NONALIGNING_ALL, false, false));
 			list.add(new IccParameter(0.01, 0.99, 0.05, 0.1 , IncrementalConformanceChecker.Goals.DEVIATIONS, true, IncrementalConformanceChecker.Heuristics.NONALIGNING_ALL, false, false));
 			list.add(new IccParameter(0.01, 0.99, 0.10, 0.1 , IncrementalConformanceChecker.Goals.DEVIATIONS, true, IncrementalConformanceChecker.Heuristics.NONALIGNING_ALL, false, false));
+			list.add(new IccParameter(0.05, 0.99, 0.10, 0.1 , IncrementalConformanceChecker.Goals.DEVIATIONS, true, IncrementalConformanceChecker.Heuristics.NONALIGNING_ALL, false, false));
+			list.add(new IccParameter(0.10, 0.99, 0.10, 0.1 , IncrementalConformanceChecker.Goals.DEVIATIONS, true, IncrementalConformanceChecker.Heuristics.NONALIGNING_ALL, false, false));
+			list.add(new IccParameter(0.01, 0.95, 0.10, 0.1 , IncrementalConformanceChecker.Goals.DEVIATIONS, true, IncrementalConformanceChecker.Heuristics.NONALIGNING_ALL, false, false));
+			list.add(new IccParameter(0.01, 0.90, 0.10, 0.1 , IncrementalConformanceChecker.Goals.DEVIATIONS, true, IncrementalConformanceChecker.Heuristics.NONALIGNING_ALL, false, false));
 
 			list.add(new IccParameter(0.01, 0.99, 0.01, 0.2 , IncrementalConformanceChecker.Goals.DEVIATIONS, true, IncrementalConformanceChecker.Heuristics.NONALIGNING_ALL, false, false));
 			list.add(new IccParameter(0.01, 0.95, 0.01, 0.2 , IncrementalConformanceChecker.Goals.DEVIATIONS, true, IncrementalConformanceChecker.Heuristics.NONALIGNING_ALL, false, false));
@@ -581,6 +628,10 @@ public class Evaluation{
 			list.add(new IccParameter(0.10, 0.90, 0.01, 0.2 , IncrementalConformanceChecker.Goals.DEVIATIONS, true, IncrementalConformanceChecker.Heuristics.NONALIGNING_ALL, false, false));
 			list.add(new IccParameter(0.01, 0.99, 0.05, 0.2 , IncrementalConformanceChecker.Goals.DEVIATIONS, true, IncrementalConformanceChecker.Heuristics.NONALIGNING_ALL, false, false));
 			list.add(new IccParameter(0.01, 0.99, 0.10, 0.2 , IncrementalConformanceChecker.Goals.DEVIATIONS, true, IncrementalConformanceChecker.Heuristics.NONALIGNING_ALL, false, false));
+			list.add(new IccParameter(0.05, 0.99, 0.10, 0.2 , IncrementalConformanceChecker.Goals.DEVIATIONS, true, IncrementalConformanceChecker.Heuristics.NONALIGNING_ALL, false, false));
+			list.add(new IccParameter(0.10, 0.99, 0.10, 0.2 , IncrementalConformanceChecker.Goals.DEVIATIONS, true, IncrementalConformanceChecker.Heuristics.NONALIGNING_ALL, false, false));
+			list.add(new IccParameter(0.01, 0.95, 0.10, 0.2 , IncrementalConformanceChecker.Goals.DEVIATIONS, true, IncrementalConformanceChecker.Heuristics.NONALIGNING_ALL, false, false));
+			list.add(new IccParameter(0.01, 0.90, 0.10, 0.2 , IncrementalConformanceChecker.Goals.DEVIATIONS, true, IncrementalConformanceChecker.Heuristics.NONALIGNING_ALL, false, false));
 			
 			list.add(new IccParameter(0.01, 0.99, 0.01, 0.3 , IncrementalConformanceChecker.Goals.DEVIATIONS, true, IncrementalConformanceChecker.Heuristics.NONALIGNING_ALL, false, false));
 			list.add(new IccParameter(0.01, 0.95, 0.01, 0.3 , IncrementalConformanceChecker.Goals.DEVIATIONS, true, IncrementalConformanceChecker.Heuristics.NONALIGNING_ALL, false, false));
@@ -593,7 +644,11 @@ public class Evaluation{
 			list.add(new IccParameter(0.10, 0.90, 0.01, 0.3 , IncrementalConformanceChecker.Goals.DEVIATIONS, true, IncrementalConformanceChecker.Heuristics.NONALIGNING_ALL, false, false));
 			list.add(new IccParameter(0.01, 0.99, 0.05, 0.3 , IncrementalConformanceChecker.Goals.DEVIATIONS, true, IncrementalConformanceChecker.Heuristics.NONALIGNING_ALL, false, false));
 			list.add(new IccParameter(0.01, 0.99, 0.10, 0.3 , IncrementalConformanceChecker.Goals.DEVIATIONS, true, IncrementalConformanceChecker.Heuristics.NONALIGNING_ALL, false, false));
-			
+			list.add(new IccParameter(0.05, 0.99, 0.10, 0.3 , IncrementalConformanceChecker.Goals.DEVIATIONS, true, IncrementalConformanceChecker.Heuristics.NONALIGNING_ALL, false, false));
+			list.add(new IccParameter(0.10, 0.99, 0.10, 0.3 , IncrementalConformanceChecker.Goals.DEVIATIONS, true, IncrementalConformanceChecker.Heuristics.NONALIGNING_ALL, false, false));
+			list.add(new IccParameter(0.01, 0.95, 0.10, 0.3 , IncrementalConformanceChecker.Goals.DEVIATIONS, true, IncrementalConformanceChecker.Heuristics.NONALIGNING_ALL, false, false));
+			list.add(new IccParameter(0.01, 0.90, 0.10, 0.3 , IncrementalConformanceChecker.Goals.DEVIATIONS, true, IncrementalConformanceChecker.Heuristics.NONALIGNING_ALL, false, false));
+
 	
 			
 			//deviations with approximation - nonaligning_known
@@ -608,7 +663,12 @@ public class Evaluation{
 			list.add(new IccParameter(0.10, 0.90, 0.01, 0.1 , IncrementalConformanceChecker.Goals.DEVIATIONS, true, IncrementalConformanceChecker.Heuristics.NONALIGNING_KNOWN, false, false));
 			list.add(new IccParameter(0.01, 0.99, 0.05, 0.1 , IncrementalConformanceChecker.Goals.DEVIATIONS, true, IncrementalConformanceChecker.Heuristics.NONALIGNING_KNOWN, false, false));
 			list.add(new IccParameter(0.01, 0.99, 0.10, 0.1 , IncrementalConformanceChecker.Goals.DEVIATIONS, true, IncrementalConformanceChecker.Heuristics.NONALIGNING_KNOWN, false, false));
+			list.add(new IccParameter(0.05, 0.99, 0.10, 0.1 , IncrementalConformanceChecker.Goals.DEVIATIONS, true, IncrementalConformanceChecker.Heuristics.NONALIGNING_KNOWN, false, false));
+			list.add(new IccParameter(0.10, 0.99, 0.10, 0.1 , IncrementalConformanceChecker.Goals.DEVIATIONS, true, IncrementalConformanceChecker.Heuristics.NONALIGNING_KNOWN, false, false));
+			list.add(new IccParameter(0.01, 0.95, 0.10, 0.1 , IncrementalConformanceChecker.Goals.DEVIATIONS, true, IncrementalConformanceChecker.Heuristics.NONALIGNING_KNOWN, false, false));
+			list.add(new IccParameter(0.01, 0.90, 0.10, 0.1 , IncrementalConformanceChecker.Goals.DEVIATIONS, true, IncrementalConformanceChecker.Heuristics.NONALIGNING_KNOWN, false, false));
 
+			
 			list.add(new IccParameter(0.01, 0.99, 0.01, 0.2 , IncrementalConformanceChecker.Goals.DEVIATIONS, true, IncrementalConformanceChecker.Heuristics.NONALIGNING_KNOWN, false, false));
 			list.add(new IccParameter(0.01, 0.95, 0.01, 0.2 , IncrementalConformanceChecker.Goals.DEVIATIONS, true, IncrementalConformanceChecker.Heuristics.NONALIGNING_KNOWN, false, false));
 			list.add(new IccParameter(0.01, 0.90, 0.01, 0.2 , IncrementalConformanceChecker.Goals.DEVIATIONS, true, IncrementalConformanceChecker.Heuristics.NONALIGNING_KNOWN, false, false));
@@ -620,6 +680,11 @@ public class Evaluation{
 			list.add(new IccParameter(0.10, 0.90, 0.01, 0.2 , IncrementalConformanceChecker.Goals.DEVIATIONS, true, IncrementalConformanceChecker.Heuristics.NONALIGNING_KNOWN, false, false));
 			list.add(new IccParameter(0.01, 0.99, 0.05, 0.2 , IncrementalConformanceChecker.Goals.DEVIATIONS, true, IncrementalConformanceChecker.Heuristics.NONALIGNING_KNOWN, false, false));
 			list.add(new IccParameter(0.01, 0.99, 0.10, 0.2 , IncrementalConformanceChecker.Goals.DEVIATIONS, true, IncrementalConformanceChecker.Heuristics.NONALIGNING_KNOWN, false, false));
+			list.add(new IccParameter(0.05, 0.99, 0.10, 0.2 , IncrementalConformanceChecker.Goals.DEVIATIONS, true, IncrementalConformanceChecker.Heuristics.NONALIGNING_KNOWN, false, false));
+			list.add(new IccParameter(0.10, 0.99, 0.10, 0.2 , IncrementalConformanceChecker.Goals.DEVIATIONS, true, IncrementalConformanceChecker.Heuristics.NONALIGNING_KNOWN, false, false));
+			list.add(new IccParameter(0.01, 0.95, 0.10, 0.2 , IncrementalConformanceChecker.Goals.DEVIATIONS, true, IncrementalConformanceChecker.Heuristics.NONALIGNING_KNOWN, false, false));
+			list.add(new IccParameter(0.01, 0.90, 0.10, 0.2 , IncrementalConformanceChecker.Goals.DEVIATIONS, true, IncrementalConformanceChecker.Heuristics.NONALIGNING_KNOWN, false, false));
+
 			
 			list.add(new IccParameter(0.01, 0.99, 0.01, 0.3 , IncrementalConformanceChecker.Goals.DEVIATIONS, true, IncrementalConformanceChecker.Heuristics.NONALIGNING_KNOWN, false, false));
 			list.add(new IccParameter(0.01, 0.95, 0.01, 0.3 , IncrementalConformanceChecker.Goals.DEVIATIONS, true, IncrementalConformanceChecker.Heuristics.NONALIGNING_KNOWN, false, false));
@@ -632,7 +697,11 @@ public class Evaluation{
 			list.add(new IccParameter(0.10, 0.90, 0.01, 0.3 , IncrementalConformanceChecker.Goals.DEVIATIONS, true, IncrementalConformanceChecker.Heuristics.NONALIGNING_KNOWN, false, false));
 			list.add(new IccParameter(0.01, 0.99, 0.05, 0.3 , IncrementalConformanceChecker.Goals.DEVIATIONS, true, IncrementalConformanceChecker.Heuristics.NONALIGNING_KNOWN, false, false));
 			list.add(new IccParameter(0.01, 0.99, 0.10, 0.3 , IncrementalConformanceChecker.Goals.DEVIATIONS, true, IncrementalConformanceChecker.Heuristics.NONALIGNING_KNOWN, false, false));
-			*/
+			list.add(new IccParameter(0.05, 0.99, 0.10, 0.3 , IncrementalConformanceChecker.Goals.DEVIATIONS, true, IncrementalConformanceChecker.Heuristics.NONALIGNING_KNOWN, false, false));
+			list.add(new IccParameter(0.10, 0.99, 0.10, 0.3 , IncrementalConformanceChecker.Goals.DEVIATIONS, true, IncrementalConformanceChecker.Heuristics.NONALIGNING_KNOWN, false, false));
+			list.add(new IccParameter(0.01, 0.95, 0.10, 0.3 , IncrementalConformanceChecker.Goals.DEVIATIONS, true, IncrementalConformanceChecker.Heuristics.NONALIGNING_KNOWN, false, false));
+			list.add(new IccParameter(0.01, 0.90, 0.10, 0.3 , IncrementalConformanceChecker.Goals.DEVIATIONS, true, IncrementalConformanceChecker.Heuristics.NONALIGNING_KNOWN, false, false));
+		
 			int total=list.size()*repetitions;
 			int cnt=1;
 			for(IccParameter parameter : list) {
@@ -641,9 +710,9 @@ public class Evaluation{
 					
 					XLog copyLog=(XLog) log.clone();
 					//Replayer replayer = ReplayerFactory.createReplayer(net, copyLog, mapping, true);
-					IncrementalTraceAnalyzer<?> analyzer = TraceAnalyzerFactory.createTraceAnalyzer(parameter, mapping, log, net, null);
+					IncrementalTraceAnalyzer<?> analyzer = TraceAnalyzerFactory.createTraceAnalyzer(parameter, mapping, classifier, log, net, null);
 					long start = System.currentTimeMillis();
-					GlobalConformanceResult result = checkForGlobalConformanceWithICC(context, net, copyLog, mapping, analyzer, parameter, null, null, SEEDS[i]);
+					GlobalConformanceResult result = checkForGlobalConformanceWithICC(context, net, copyLog, analyzer, parameter, null, null, SEEDS[i]);
 					long end = System.currentTimeMillis();
 					String out=String.join(";", 
 							Double.toString(parameter.getDelta()),Double.toString(parameter.getAlpha()),Double.toString(parameter.getEpsilon()),Double.toString(parameter.getK()),
@@ -688,9 +757,11 @@ public class Evaluation{
 			XLog log = loadLog(LOG_PATH);
 			PetrinetGraph net = importPNML(NET_PATH, context);
 			System.out.println("	>Loaded log and net");
-			TransEvClassMapping mapping = computeTransEventMapping(log, net);				
 			
-			PrintWriter prefixsuffix = new PrintWriter(input+"_prefixsuffix5.csv", "UTF-8");
+			XEventClassifier classifier = deriveClassifierForLog(input);		
+			TransEvClassMapping mapping = computeTransEventMapping(input, log, net, classifier);				
+			
+			PrintWriter prefixsuffix = new PrintWriter(input+"_prefixsuffix.csv", "UTF-8");
 			prefixsuffix.write(String.join(";","delta","alpha","epsilon","k","time","logSize","variants","approximated","fitness","deviations","approximationMode","resources\n"));
 				
 			ArrayList<IccParameter> list = new ArrayList<IccParameter>();
@@ -700,6 +771,10 @@ public class Evaluation{
 			list.add(new IccParameter(0.01, 0.99, 0.01, 0.01  , IncrementalConformanceChecker.Goals.DEVIATIONS, true, IncrementalConformanceChecker.Heuristics.PREFIXSUFFIX, false, false));
 			list.add(new IccParameter(0.01, 0.99, 0.01, 0.05  , IncrementalConformanceChecker.Goals.DEVIATIONS, true, IncrementalConformanceChecker.Heuristics.PREFIXSUFFIX, false, false));
 			list.add(new IccParameter(0.01, 0.99, 0.01, 0.1   , IncrementalConformanceChecker.Goals.DEVIATIONS, true, IncrementalConformanceChecker.Heuristics.PREFIXSUFFIX, false, false));
+			list.add(new IccParameter(0.01, 0.99, 0.10, 0.01  , IncrementalConformanceChecker.Goals.DEVIATIONS, true, IncrementalConformanceChecker.Heuristics.PREFIXSUFFIX, false, false));
+			list.add(new IccParameter(0.01, 0.99, 0.10, 0.05  , IncrementalConformanceChecker.Goals.DEVIATIONS, true, IncrementalConformanceChecker.Heuristics.PREFIXSUFFIX, false, false));
+			list.add(new IccParameter(0.01, 0.99, 0.10, 0.1   , IncrementalConformanceChecker.Goals.DEVIATIONS, true, IncrementalConformanceChecker.Heuristics.PREFIXSUFFIX, false, false));
+			
 			int cnt=1;
 			int total=list.size()*repetitions;
 			for(IccParameter parameter : list) {
@@ -707,9 +782,9 @@ public class Evaluation{
 					System.out.println("prefixSuffix Evaluation>"+input+" - repetition "+cnt+"/"+total);
 					XLog copyLog=(XLog) log.clone();
 					//Replayer replayer = ReplayerFactory.createReplayer(net, copyLog, mapping, true);
-					IncrementalTraceAnalyzer<?> analyzer = TraceAnalyzerFactory.createTraceAnalyzer(parameter, mapping, log, net, null);
+					IncrementalTraceAnalyzer<?> analyzer = TraceAnalyzerFactory.createTraceAnalyzer(parameter, mapping, classifier, log, net, null);
 					long start = System.currentTimeMillis();
-					GlobalConformanceResult result = checkForGlobalConformanceWithICC(context, net, copyLog, mapping, analyzer, parameter, null, null, SEEDS[i]);
+					GlobalConformanceResult result = checkForGlobalConformanceWithICC(context, net, copyLog, analyzer, parameter, null, null, SEEDS[i]);
 					long end = System.currentTimeMillis();
 					String out=String.join(";", 
 							Double.toString(parameter.getDelta()),Double.toString(parameter.getAlpha()),Double.toString(parameter.getEpsilon()),Double.toString(parameter.getK()),
@@ -731,47 +806,55 @@ public class Evaluation{
 //	 * @throws Exception
 //	 */
 	private void qualityCheckingEvaluation(UIPluginContext context) throws Exception{
-//		String[] inputNames = {"BPI_Challenge_2012"};
-		String[] inputNames = {"BPI_Challenge_2012"};
+		String[] inputNames = {"BPI_Challenge_2012", "Detail_Incident_Activity", "Road_Traffic_Fines_Management_Process", "RTFM_model2"};
+		//String[] inputNames = {"RTFM_model2"};
+		//String[] inputNames = {"Detail_Incident_Activity"};
+		//String[] inputNames = {"BPI_Challenge_2012"};
+		
 		System.out.println("Evaluating Quality Checking");
-		int repetitions =1;
-		PrintWriter writer = new PrintWriter("qualitychecking5.csv", "UTF-8");
-		writer.write("log; delta; alpha; epsilon; quality checker; dfDistrib; dep measure; attrib; sample size; times triggered; fitness;"
-				+ " time; distToOriginal; original; df repr.; dep measure repr.; attribute repr.; \n");
+		int repetitions =10;
 
 		for(String input : inputNames) {
+			PrintWriter writer = new PrintWriter(input+"_qualitycheckingBINOMIAL.csv", "UTF-8");
+			writer.write("log; delta; alpha; epsilon; approximated; quality checker; significance; dfDistrib; dep measure; attrib; sample size; times triggered; fitness;"
+					+ " time; distToOriginal; fitnessAtFirst; distToOrigAtFirst; original; df repr.; dep measure repr.; attribute repr.; \n");
+
 			System.out.println("	>"+input);
 			String NET_PATH = "input/" + input + ".pnml";
 			String LOG_PATH = "input/" + input + ".xes";
 			XLog log = loadLog(LOG_PATH);
 			PetrinetGraph net = importPNML(NET_PATH, context);
 			System.out.println("	>Loaded log and net");
-			TransEvClassMapping mapping = computeTransEventMapping(log, net);				
+
+			XEventClassifier classifier = deriveClassifierForLog(input);
+			TransEvClassMapping mapping = computeTransEventMapping(input, log, net, classifier);				
 			
 			double origFitness = 0;
-			if (input.equals("BPI_Challenge_2014")) {
-				origFitness = 0.9008334329271833; 
+			if (input.equals("Detail_Incident_Activity")) {
+				origFitness = 0.810502631726981; 
 			}
 			if (input.equals("Road_Traffic_Fines_Management_Process")) {
 				origFitness = 0.9823429057173879;
 			}
 			if (input.equals("BPI_Challenge_2012")) {
-				origFitness = 0.7310599598129743;
+				origFitness = 0.949677667436418;
 			}
-
+			if (input.equals("RTFM_model2")) {
+				origFitness = 0.9965231066161008;
+			}
 			
 			ArrayList<IccParameter> settingList = new ArrayList<IccParameter>();
-			
 			IccParameter setting;
 			QualityCheckManager checker;
 			//internal checks
 			//without quality checking
+			
+			
 			setting =  new IccParameter(0.01, 0.99, 0.01, 0.2, IncrementalConformanceChecker.Goals.FITNESS, false, false, false);
 			checker = new QualityCheckManager(true);
-			setting.setInternalQualityCheckManager(checker); // necessary for cleaner code w.r.t. reset
+			setting.setInternalQualityCheckManager(checker);
 			setting.setStoreSampledTraces(true);
 			settingList.add(setting);
-			
 			
 			//with directly follows checking
 			setting =  new IccParameter(0.01, 0.99, 0.01, 0.2, IncrementalConformanceChecker.Goals.FITNESS, false, true, false);
@@ -788,7 +871,6 @@ public class Evaluation{
 			setting.setStoreSampledTraces(true);
 			settingList.add(setting);
 			
-			
 			//with data attribute
 			setting =  new IccParameter(0.01, 0.99, 0.01, 0.2, IncrementalConformanceChecker.Goals.FITNESS, false, true, false);
 			checker = new QualityCheckManager(true);
@@ -804,6 +886,7 @@ public class Evaluation{
 			setting.setInternalQualityCheckManager(checker);
 			setting.setStoreSampledTraces(true);
 			settingList.add(setting);
+			
 			//with dependency measure and data attribute
 			setting =  new IccParameter(0.01, 0.99, 0.01, 0.2, IncrementalConformanceChecker.Goals.FITNESS, false, true, false);
 			checker = new QualityCheckManager(true);
@@ -813,36 +896,59 @@ public class Evaluation{
 			setting.setStoreSampledTraces(true);
 			settingList.add(setting);
 			
-//			settingList = new ArrayList<IccParameter>(); // quick hack to skip internal
+			//with dependency measure and data attribute using approximation
+			setting =  new IccParameter(0.01, 0.99, 0.01, 0.2, IncrementalConformanceChecker.Goals.FITNESS, true, true, false);
+			checker = new QualityCheckManager(true);
+			checker.addDependencyMeasureChecking();				
+			addDataAttribute(checker, input);
+			setting.setInternalQualityCheckManager(checker);
+			setting.setStoreSampledTraces(true);
+			settingList.add(setting);
+			
+			int cnt =0;
+			int total = settingList.size()*repetitions;
 			for(IccParameter currSetting : settingList) {
 				checker = currSetting.getInternalQualityCheckManager();
 				for(int j=0;j<repetitions;j++) {
+					cnt++;
+					System.out.println("Internal - Repetition "+cnt+"/"+total);
 					XLog copyLog=(XLog) log.clone();
-					IncrementalTraceAnalyzer<?> analyzer = TraceAnalyzerFactory.createTraceAnalyzer(currSetting, mapping, log, net, null);
+					IncrementalTraceAnalyzer<?> analyzer = TraceAnalyzerFactory.createTraceAnalyzer(currSetting, mapping, classifier, copyLog, net, null);
 					long start = System.currentTimeMillis();
 					IncrementalConformanceChecker icc = new IncrementalConformanceChecker(analyzer, currSetting, SEEDS[j]);
-					GlobalConformanceResult result = icc.apply(context, copyLog, net, mapping);
+					GlobalConformanceResult result = checkForGlobalConformanceWithICC(context, net, copyLog, analyzer, currSetting, null, null, SEEDS[j]);
 					long end = System.currentTimeMillis();
 					long time = end-start;
-					
+					//System.out.println("Analysis done!");
+					String out = input + ";" + currSetting.getDelta() + ";" + currSetting.getAlpha() + ";" + currSetting.getEpsilon() + ";"+ currSetting.isApproximate() +";" + "internal" + ";" + "--" +";"+
+							checker.hasDirectlyFollowsChecker() + ";" + checker.hasDependencyMeasureChecker() + ";" + checker.hasAttributeChecker()  + ";" + result.getCnt() + ";" +  checker.timesTriggered()  + ";" +  
+							result.getFitness()  + ";" +  (time) + ";"+ String.valueOf(Math.abs(result.getFitness() - origFitness))  + ";--;--;" +  origFitness;
+					System.out.println(out);
 					// do some sample quality checking here. Can I retrieve the sampled traces?
 					String samplequalityString = assessSampleQualityVersusFullLog(input, log, icc.getSampledTraces());
 					
-					String out = input + ";" + currSetting.getDelta() + ";" + currSetting.getAlpha() + ";" + currSetting.getEpsilon() + ";" + "internal" + ";" +
-					checker.hasDirectlyFollowsChecker() + ";" + checker.hasDependencyMeasureChecker() + ";" + checker.hasAttributeChecker()  + ";" + icc.getSampledTraces().size() + ";" +  checker.timesTriggered()  + ";" +  
-					result.getFitness()  + ";" +  (time) + ";"+ String.valueOf(Math.abs(result.getFitness() - origFitness))  + ";" +  origFitness + ";" + samplequalityString;
-					System.out.println(out);
+					out = input + ";" + currSetting.getDelta() + ";" + currSetting.getAlpha() + ";" + currSetting.getEpsilon() + ";"+ currSetting.isApproximate() +";" + "internal" + ";" + "--" +";"+
+					checker.hasDirectlyFollowsChecker() + ";" + checker.hasDependencyMeasureChecker() + ";" + checker.hasAttributeChecker()  + ";" + result.getCnt() + ";" +  checker.timesTriggered()  + ";" +  
+					result.getFitness()  + ";" +  (time) + ";"+ String.valueOf(Math.abs(result.getFitness() - origFitness))  + ";--;--;" +  origFitness + ";" + samplequalityString;
+					//System.out.println(out);
 					out = out.replace('.', ',');
 					writer.write(out + "\n");
 					checker.resetAll();
 				}
 			}
 			
-//			//external
+			//external
 			settingList = new ArrayList<IccParameter>();
+			//without quality checking
+			setting =  new IccParameter(0.01, 0.99, 0.01, 0.2, IncrementalConformanceChecker.Goals.FITNESS, false, false, false);
+			checker = new QualityCheckManager(false);
+			setting.setExternalQualityCheckManager(checker); // necessary for cleaner code w.r.t. reset
+			setting.setStoreSampledTraces(true);
+			//settingList.add(setting);
+			
 			//with directly follows checking
 			setting =  new IccParameter(0.01, 0.99, 0.01, 0.2, IncrementalConformanceChecker.Goals.FITNESS, false, false, true);
-			checker = new QualityCheckManager(false);
+			checker = new QualityCheckManager(false, 0.05);
 			checker.addDirectlyFollowsChecking();
 			setting.setExternalQualityCheckManager(checker);
 			setting.setStoreSampledTraces(true);
@@ -850,57 +956,64 @@ public class Evaluation{
 				
 			//with data attribute
 			setting =  new IccParameter(0.01, 0.99, 0.01, 0.2, IncrementalConformanceChecker.Goals.FITNESS, false, false, true);
-			checker = new QualityCheckManager(false);
+			checker = new QualityCheckManager(false, 0.05);
 			addDataAttribute(checker, input);
 			setting.setExternalQualityCheckManager(checker);
 			setting.setStoreSampledTraces(true);
 			settingList.add(setting);
+
 			//with directly follows and data attribute
 			setting =  new IccParameter(0.01, 0.99, 0.01, 0.2, IncrementalConformanceChecker.Goals.FITNESS, false, false, true);
-			checker = new QualityCheckManager(false);
-			checker.addDirectlyFollowsChecking();				
+			checker = new QualityCheckManager(false, 0.05);
 			addDataAttribute(checker, input);
+			checker.addDirectlyFollowsChecking();				
 			setting.setExternalQualityCheckManager(checker);
 			setting.setStoreSampledTraces(true);
-			settingList.add(setting);			
-			//settingList = new ArrayList<IccParameter>(); // quick hack to skip all settings with external quality checking
+			settingList.add(setting);	
 			
+			cnt =0;
+			total = settingList.size()*repetitions;
+
 			for(IccParameter currSetting : settingList) {
 				checker = currSetting.getExternalQualityCheckManager();
 				for(int j=0;j<repetitions;j++) {
+					cnt++;
+					System.out.println("External - Repetition "+cnt+"/"+total);
 					XLog copyLog=(XLog) log.clone();
-					IncrementalTraceAnalyzer<?> analyzer = TraceAnalyzerFactory.createTraceAnalyzer(currSetting, mapping, log, net, null);
+					IncrementalTraceAnalyzer<?> analyzer = TraceAnalyzerFactory.createTraceAnalyzer(currSetting, mapping, classifier, log, net, null);
 					long start = System.currentTimeMillis();
 					IncrementalConformanceChecker icc = new IncrementalConformanceChecker(analyzer, currSetting, SEEDS[j]);
-					GlobalConformanceResult result = icc.apply(context, copyLog, net, mapping);
+					GlobalConformanceResult result = checkForGlobalConformanceWithICC(context, net, copyLog, analyzer, currSetting, null, null, SEEDS[j]);
 					long end = System.currentTimeMillis();
 					long time = end-start;
-					
-					// do some sample quality checking here. Can I retrieve the sampled traces?
+					String out = input + ";" + currSetting.getDelta() + ";" + currSetting.getAlpha() + ";" + currSetting.getEpsilon() + ";"+ currSetting.isApproximate() +";" + "external" + ";" + checker.getAlpha() +";"+
+							checker.hasDirectlyFollowsChecker() + ";" + checker.hasDependencyMeasureChecker() + ";" + checker.hasAttributeChecker()  + ";" + result.getCnt() + ";" +  checker.timesTriggered()  + ";" +  
+							result.getFitness()  + ";" +  (time) + ";"+ String.valueOf(Math.abs(result.getFitness() - origFitness))  + ";" + result.fitnessAtFirst  + ";" + String.valueOf(Math.abs(result.fitnessAtFirst- origFitness)) + ";"+ origFitness;
+					System.out.println(out);					// do some sample quality checking here. Can I retrieve the sampled traces?
 					String samplequalityString = assessSampleQualityVersusFullLog(input, log, icc.getSampledTraces());
-					
-					String out = input + ";" + currSetting.getDelta() + ";" + currSetting.getAlpha() + ";" + currSetting.getEpsilon() + ";" + "external" + ";" +
-					checker.hasDirectlyFollowsChecker() + ";" + checker.hasDependencyMeasureChecker() + ";" + checker.hasAttributeChecker()  + ";" + icc.getSampledTraces().size() + ";" +  checker.timesTriggered()  + ";" +  
-					result.getFitness()  + ";" +  (time) + ";"+ String.valueOf(Math.abs(result.getFitness() - origFitness))  + ";" +  origFitness + ";" + samplequalityString;
-					System.out.println(out);
+
+					out = input + ";" + currSetting.getDelta() + ";" + currSetting.getAlpha() + ";" + currSetting.getEpsilon() + ";" + currSetting.isApproximate() +";" +"external" + ";" + checker.getAlpha()+ ";" +
+					checker.hasDirectlyFollowsChecker() + ";" + checker.hasDependencyMeasureChecker() + ";" + checker.hasAttributeChecker()  + ";" + result.getCnt() + ";" +  checker.timesTriggered()  + ";" +  
+					result.getFitness()  + ";" +  (time) + ";"+ String.valueOf(Math.abs(result.getFitness() - origFitness))  + ";" + result.fitnessAtFirst  + ";" + String.valueOf(Math.abs(result.fitnessAtFirst- origFitness)) + ";"+ +  origFitness + ";" + samplequalityString;
 					out = out.replace('.', ',');
 					writer.write(out + "\n");
 					checker.resetAll();
+					System.out.println();
 				}
 			}
+			writer.close();
 		}
-		writer.close();
 	}
 	
 	private void addDataAttribute(QualityCheckManager manager, String logname) {
-		if (logname.equals("Road_Traffic_Fines_Management_Process")) {
+		if (logname.equals("Road_Traffic_Fines_Management_Process") || logname.equals("RTFM_model2")) {
 			manager.addNumericEventAttribute("Create Fine", "amount");
 		}
 		if (logname.equals("BPI_Challenge_2012")) {
 			manager.addNominalEventAttribute("W_Completeren aanvraag", "org:resource");
 		}
 		if (logname.equals("Detail_Incident_Activity")) {
-			manager.addNominalEventAttribute("Closed", "org:resource");
+			manager.addNominalEventAttribute("Closed", "KM number");
 		}
 	}
 	
@@ -926,36 +1039,18 @@ public class Evaluation{
 		return String.join(";", strValues);
 	}
 	
-//	
-//	/**
-//	 * set the checked data attribute depending on the given log
-//	 * @param manager
-//	 * @param logname
-//	 */
-//	private void addDataAttribute(QualityCheckManager manager, String logname) {
-//		if (logname.equals("Road_Traffic_Fines_Management_Process")) {
-//			manager.addNumericEventAttribute("Create Fine", "amount");
-//		}
-//		if (logname.equals("BPI_Challenge_2012")) {
-//			manager.addNominalEventAttribute("W_Completeren aanvraag", "org:resource");
-//		}
-//		if (logname.equals("Detail_Incident_Activity")) {
-//			manager.addNominalEventAttribute("Closed", "org:resource");
-//		}
-//	}
-//
 	/**
-	 * get runtime and fitness results for the synthetic datasets, as used in TODO add paper
+	 * get runtime and fitness results for the synthetic datasets
 	 * @param context
 	 * @throws Exception
 	 */
 	private void syntheticEvaluation(UIPluginContext context)throws Exception {
-		String[] inputNames = {/*"prAm6","prBm6",*/"prCm6","prDm6","prEm6","prFm6","prGm6"};
+		String[] inputNames = {"prAm6","prBm6","prCm6","prDm6","prEm6","prFm6","prGm6"};
 		System.out.println("Evaluating synthetic log model pairs");
 		int repetitions =10;
 
 		for(String input : inputNames) {
-			PrintWriter synthetic = new PrintWriter(input+"_synthetic5.csv", "UTF-8");
+			PrintWriter synthetic = new PrintWriter(input+"_synthetic.csv", "UTF-8");
 			synthetic.write(String.join(";","delta","alpha","epsilon","k","time","logSize","variants","approximated","fitness","deviations","approximationMode","resources\n"));
 
 			String NET_PATH = "input/" + input + ".pnml";
@@ -963,11 +1058,15 @@ public class Evaluation{
 			XLog log = loadLog(LOG_PATH);
 			PetrinetGraph net = importPNML(NET_PATH, context);
 			System.out.println("	>Loaded log and net");
-			TransEvClassMapping mapping = computeTransEventMapping(log, net);
+			
+			XEventClassifier classifier = deriveClassifierForLog(input);
+			TransEvClassMapping mapping = computeTransEventMapping(input, log, net, classifier);
 			
 			List<IccParameter> settings = new ArrayList<IccParameter>();
 			settings.add(new IccParameter(0.05, 0.99, 0.01, 0.2 , IncrementalConformanceChecker.Goals.FITNESS, false, false, false));
-			settings.add(new IccParameter(0.01, 0.99, 0.01, 0.2 , IncrementalConformanceChecker.Goals.FITNESS, false, false, false));
+			settings.add(new IccParameter(0.05, 0.99, 0.1, 0.2 , IncrementalConformanceChecker.Goals.FITNESS, false, false, false));
+
+			//settings.add(new IccParameter(0.01, 0.99, 0.01, 0.2 , IncrementalConformanceChecker.Goals.FITNESS, false, false, false));
 	
 			for(IccParameter parameter : settings) {
 				int cnt=1;
@@ -976,10 +1075,11 @@ public class Evaluation{
 					System.out.println("Synthetic Evaluation>"+input+" - repetition "+cnt+"/"+total);
 					XLog copyLog=(XLog) log.clone();
 					//Replayer replayer = ReplayerFactory.createReplayer(net, copyLog, mapping, true);
-					IncrementalTraceAnalyzer<?> analyzer = TraceAnalyzerFactory.createTraceAnalyzer(parameter, mapping, log, net, null);
+					IncrementalTraceAnalyzer<?> analyzer = TraceAnalyzerFactory.createTraceAnalyzer(parameter, mapping, classifier, copyLog, net, null);
 					long start = System.currentTimeMillis();
-					GlobalConformanceResult result = checkForGlobalConformanceWithICC(context, net, copyLog, mapping, analyzer, parameter, null, null, SEEDS[i]);
+					GlobalConformanceResult result = checkForGlobalConformanceWithICC(context, net, copyLog, analyzer, parameter, null, null, SEEDS[i]);
 					long end = System.currentTimeMillis();
+					System.out.println(end-start);
 					String out=String.join(";", 
 							Double.toString(parameter.getDelta()),Double.toString(parameter.getAlpha()),Double.toString(parameter.getEpsilon()),Double.toString(parameter.getK()),
 							Long.toString(end-start), Integer.toString(result.getCnt()),Integer.toString(result.getTotalVariants()), Integer.toString(result.getApproximatedVariants()),
@@ -998,71 +1098,179 @@ public class Evaluation{
 //	 * @throws Exception
 //	 */
 	private void resourceDeviationEvaluation(UIPluginContext context) throws Exception {
-		String[] inputNames = {"BPI_Challenge_2012"};
+		//String[] inputNames = {"BPI_Challenge_2012"};
+		String[] inputNames = {"Road_Traffic_Fines_Management_Process", "RTFM_model2", "BPI_Challenge_2012", "Detail_Incident_Activity"};
 		System.out.println("Evaluating resource deviations");
 		int repetitions =10;
-
+		
+		//get resource deviations for baseline
 		for(String input : inputNames) {
-			System.out.println("	>"+input);
-
+			System.out.println(">"+input);
+			PrintWriter baselineStats = new PrintWriter(input+"_baseline.csv", "UTF-8");
+			baselineStats.write(String.join(";","time","logSize","fitness","deviations","resources\n"));
 			String NET_PATH = "input/" + input + ".pnml";
 			String LOG_PATH = "input/" + input + ".xes";
 			XLog log = loadLog(LOG_PATH);
 			PetrinetGraph net = importPNML(NET_PATH, context);
-			System.out.println("	>Loaded log and net");
-			TransEvClassMapping mapping = computeTransEventMapping(log, net);				
+			System.out.println(">Loaded log and net");
 			
-			PrintWriter resources = new PrintWriter(input+"_resources10.csv", "UTF-8");
-			resources.write(String.join(";","delta","alpha","epsilon","k","time","logSize","variants","approximated","approxThenCalc","fitness","deviations","approximationMode","resources\n"));
+			XEventClassifier classifier = deriveClassifierForLog(input);
+			TransEvClassMapping mapping = computeTransEventMapping(input, log, net, classifier);
+			
+			double fitness=-1.0;
+			Map<String,Double> deviationsRel=new HashMap<String,Double>();
+			Map<String, Map<String,Double>> resourcesRelative = new HashMap<String, Map<String,Double>>();
+
+			int cnt=1;
+			System.out.println("Baseline Evaluation>"+input+" - repetition "+cnt+"/"+repetitions);
+			
+			XLog copyLog = (XLog) log.clone();
+			Replayer replayer = ReplayerFactory.createReplayer(net, copyLog, mapping, classifier, false);
+			
+			long start = System.currentTimeMillis();
+			PNRepResult result = replayer.computePNRepResult(Progress.INVISIBLE, copyLog);
+			long end = System.currentTimeMillis();
+			//System.out.println("replay time :"+(end-start));
+			
+			//resources
+			Map<String, Map<String,Double>> resources = new HashMap<String, Map<String,Double>>();
+			
+			ResourceAssignment resAssignment = new ResourceAssignment();
+			ResourceAssignmentComputer assignmentComputer = new ResourceAssignmentComputer(0.20);
+			resAssignment = assignmentComputer.createResourceAssignment(copyLog);
+			
+			for (SyncReplayResult replayResult : result) {
+				List<StepTypes> stepTypes = replayResult.getStepTypes();
+				for (int traceIndex : replayResult.getTraceIndex()) {
+					XTrace trace = copyLog.get(traceIndex);
+					Map<String, Map<String,Double>> result1 = getResourcesFromSkipSteps(trace, stepTypes);
+					Map<String, Map<String,Double>> result2 = getUnauthorizedResources(trace, resAssignment);
+					for (String activity : result2.keySet()) {
+						if (resources.containsKey(activity)) {
+							for(Entry<String, Double> resource : result2.get(activity).entrySet()) {
+								if(resources.get(activity).containsKey(resource.getKey())) {
+									resources.get(activity).put(resource.getKey(), resources.get(activity).get(resource.getKey())+resource.getValue());
+								}
+								else
+									resources.get(activity).put(resource.getKey(), resource.getValue());
+							}
+						} else {
+							resources.put(activity, result2.get(activity));
+						}
+					}
+					for (String activity : result1.keySet()) {
+						if(resources.containsKey(activity)) {
+							for (Entry<String, Double> resource : result1.get(activity).entrySet()) {
+								if(resources.get(activity).containsKey(resource.getKey())) {
+									resources.get(activity).put(resource.getKey(), resources.get(activity).get(resource.getKey())+resource.getValue());
+								}
+								else {
+									resources.get(activity).put(resource.getKey(),resource.getValue());
+								}
+							}
+						}
+						else {
+							resources.put(activity, result1.get(activity));
+						}
+					}
+				}
+			}	
+	
+			System.out.println("	>"+input);
+			
+			
+
+			PrintWriter resources2 = new PrintWriter(input+"_resources.csv", "UTF-8");
+			resources2.write(String.join(";","delta","alpha","epsilon","k","time","logSize","variants","approximated","approxThenCalc","fitness","deviations","approximationMode","resources\n"));
 			
 			ArrayList<IccParameter> list = new ArrayList<IccParameter>();
 			//deviations approximated - prefix suffix
 			list.add(new IccParameter(0.01, 0.99, 0.01, 0.1 , IncrementalConformanceChecker.Goals.RESOURCES, false, IncrementalConformanceChecker.Heuristics.NONALIGNING_KNOWN, false, false));
 			list.add(new IccParameter(0.01, 0.99, 0.01, 0.1 , IncrementalConformanceChecker.Goals.RESOURCES, true, IncrementalConformanceChecker.Heuristics.NONALIGNING_KNOWN, false, false));
+			list.add(new IccParameter(0.01, 0.99, 0.01, 0.2 , IncrementalConformanceChecker.Goals.RESOURCES, true, IncrementalConformanceChecker.Heuristics.NONALIGNING_KNOWN, false, false));
 
-			int cnt=1;
+			
 			int total = repetitions*list.size();
+			GlobalConformanceResult result2 = null;
 			for(IccParameter parameter : list) {
 				for(int i=0;i<repetitions;i++) {
 					System.out.println("Resource Evaluation>"+input+" - repetition "+cnt+"/"+total);
-					XLog copyLog=(XLog) log.clone();
-					ResourceAssignment resAssignment = new ResourceAssignment();
-					ResourceAssignmentComputer assignmentComputer = new ResourceAssignmentComputer(0.20);
+					copyLog=(XLog) log.clone();
+
 					resAssignment = assignmentComputer.createResourceAssignment(copyLog);
-					IncrementalTraceAnalyzer<?> analyzer = TraceAnalyzerFactory.createTraceAnalyzer(parameter, mapping, log, net, resAssignment);
-					long start = System.currentTimeMillis();
-					GlobalConformanceResult result = checkForGlobalConformanceWithICC(context, net, copyLog, mapping, analyzer, parameter, null, null, SEEDS[i]);
-					long end = System.currentTimeMillis();
+					IncrementalTraceAnalyzer<?> analyzer = TraceAnalyzerFactory.createTraceAnalyzer(parameter, mapping, classifier, log, net, resAssignment);
+					start = System.currentTimeMillis();
+					result2 = checkForGlobalConformanceWithICC(context, net, copyLog, analyzer, parameter, null, null, SEEDS[i]);
+					end = System.currentTimeMillis();
 					System.out.println(end-start);
+					System.out.println(result2.getCnt());
 					String out=String.join(";", 
 							Double.toString(parameter.getDelta()),Double.toString(parameter.getAlpha()),Double.toString(parameter.getEpsilon()),Double.toString(parameter.getK()),
-							Long.toString(end-start), Integer.toString(result.getCnt()),Integer.toString(result.getTotalVariants()), Integer.toString(result.getApproximatedVariants()), Integer.toString(result.GetApproxThencalc()),
-							Double.toString(result.getFitness()), result.getDeviations().toString(), parameter.getApproximationHeuristic().toString(), result.getResourceDeviations().toString()+"\n");
-					resources.write(out);
+							Long.toString(end-start), Integer.toString(result2.getCnt()),Integer.toString(result2.getTotalVariants()), Integer.toString(result2.getApproximatedVariants()), Integer.toString(result2.GetApproxThencalc()),
+							Double.toString(result2.getFitness()), result2.getDeviations().toString(), parameter.getApproximationHeuristic().toString(), result2.getResourceDeviations().toString()+"\n");
+					resources2.write(out);
 					cnt++;
+					
+				//additional analysis
+	
+		
+					Set<String> deviatingResources = new HashSet();
+					Set<String> deviatingResourcesSample = new HashSet();
+
+					Set<String> deviatingResourcesPerActivity = new HashSet();
+					Set<String> deviatingResourcesPerActivitySample = new HashSet();
+
+					int totalDeviations=0;
+					int sampleDeviations=0;
+					int sampleDeviationsPerActivity = 0;
+					
+					for (Map<String, Double> activitiesSample : result2.getResourceDeviations().values()) {
+						deviatingResourcesSample.addAll(activitiesSample.keySet());
+					}
+					for (Entry<String, Map<String, Double>> e : result2.getResourceDeviations().entrySet()){
+						for (String resource : e.getValue().keySet()) {
+							deviatingResourcesPerActivitySample.add(e.getKey()+":"+resource);
+						}
+					}
+					
+					for (Entry<String,Map<String, Double>> activitiesOrig : resources.entrySet()) {
+						deviatingResources.addAll(activitiesOrig.getValue().keySet());
+						for (Entry<String, Double> e : activitiesOrig.getValue().entrySet()) {
+							deviatingResourcesPerActivity.add(e.getKey()+":"+activitiesOrig.getKey());
+
+							
+							totalDeviations += e.getValue();
+							if (deviatingResourcesSample.contains(e.getKey())) {
+								sampleDeviations += e.getValue();
+							}
+							if (deviatingResourcesPerActivitySample.contains(activitiesOrig.getKey()+":"+e.getKey())) {
+								sampleDeviationsPerActivity += e.getValue();
+							}
+						}
+					}
+					double NumberDeviatingResources = deviatingResources.size();
+					
+					System.out.println(deviatingResources);
+					System.out.println(deviatingResourcesSample);
+					
+					System.out.println("Unique violating Resource: "+(deviatingResourcesSample.size() / NumberDeviatingResources));
+					System.out.println("Total involved Deviations: "+((double)sampleDeviations)/totalDeviations);
+					
+					System.out.println("Total Detected Resoure Activity Pairs: "+(deviatingResourcesPerActivitySample.size()/(double) deviatingResourcesPerActivity.size()));
+					System.out.println("Total involved Resource Activity Deviations: "+(double)sampleDeviationsPerActivity/totalDeviations);
+					resources2.close();
 				}
 			}
-			resources.close();
 		}
 	}
-//	
-//
-//	/**
-//	 * get different sample sizes for the different possible binomial confidence intervals
-//	 * @param context
-//	 */
+
+	
+	//TODO add
 	private void sampleSizeEvaluation(UIPluginContext context) {
-		Double[] deltas = {0.01, 0.05, 0.10};
-		Double[] alphas = {0.99, 0.95, 0.90};
-		for(Double delta : deltas) {
-			for(Double alpha : alphas) {
-				double minimalSampleSize = ThresholdCalculator.calculateThreshold(delta, alpha);
-				System.out.println("Delta: "+delta+", Alpha: "+alpha+", N_min: "+minimalSampleSize);
-			}	
-		}
+		return;
 	}
-//
-//
+
+	
 	/**
 	 * call the incremental conformance checking algorihtm using the specified parameter
 	 * @param context
@@ -1077,12 +1285,12 @@ public class Evaluation{
 	 * @throws ExecutionException 
 	 * @throws InterruptedException 
 	 */
-	
-	private GlobalConformanceResult checkForGlobalConformanceWithICC(UIPluginContext context, PetrinetGraph net, XLog log, TransEvClassMapping mapping,
+	private GlobalConformanceResult checkForGlobalConformanceWithICC(UIPluginContext context, PetrinetGraph net, XLog log,
 			IncrementalTraceAnalyzer<?> analyzer, IccParameter iccParameters, QualityCheckManager internalQualityCheckManager, QualityCheckManager externalQualityCheckManager, long seed) throws AStarException, InterruptedException, ExecutionException {
 		IncrementalConformanceChecker icc = new IncrementalConformanceChecker(analyzer, iccParameters, seed);
-		return icc.apply(context, log, net, mapping);
+		return icc.apply(context, log, net,  IncrementalConformanceChecker.SamplingMode.BINOMIAL);
 	}
+
 		
 	/**
 	 * load a log and convert is to XLog
@@ -1154,33 +1362,89 @@ public class Evaluation{
 		return netObjects;
 	}
 	
+	
 	/**
-	 * construct an ectivity-event mapping for used logs and model
+	 * returns an XEventClassifier Instance to use for the evaluation
+	 * For BPI2012 Name_Classifierh as been used, due to the events containing lifecycle informations, but the net omitting this information
+	 * @param log name
+	 * @return XEventClassifier 
+	 */
+	private XEventClassifier deriveClassifierForLog(String input) {
+		if (input.equals("BPI_Challenge_2012"))
+			return XLogInfoImpl.NAME_CLASSIFIER;
+		else
+			return XLogInfoImpl.STANDARD_CLASSIFIER;
+	}
+	
+	/**
+	 * construct an activity-event mapping for used logs and model
 	 * @param log
 	 * @param net
-	 * @return
+	 * @return transition-to-eventclass mapping
 	 */
-	public static  TransEvClassMapping computeTransEventMapping(XLog log, PetrinetGraph net) {
+	public static  TransEvClassMapping computeTransEventMapping(String inputName, XLog log, PetrinetGraph net, XEventClassifier classifier) {
 		XEventClass evClassDummy = EvClassLogPetrinetConnectionFactoryUI.DUMMY;
-		TransEvClassMapping mapping = new TransEvClassMapping(XLogInfoImpl.NAME_CLASSIFIER, evClassDummy);
-		XEventClasses ecLog = XLogInfoFactory.createLogInfo(log, XLogInfoImpl.NAME_CLASSIFIER).getEventClasses();
+		TransEvClassMapping mapping = new TransEvClassMapping(classifier, evClassDummy);
+		XEventClasses ecLog = XLogInfoFactory.createLogInfo(log, classifier).getEventClasses();
+		
+		//for RTFM_model2 mapping needs to be constructed manually
+		if(inputName.equals("RTFM_model2")) {
+			for (XEventClass clazz : ecLog.getClasses()) {
+				System.out.println(clazz.getId());
+			}
+			for (Transition t : net.getTransitions()) {
+				XEventClass eventClass = ecLog.getByIdentity(t.getLabel() + "+complete");
+				if (eventClass == null) {
+					eventClass = ecLog.getByIdentity(t.getLabel() + "+COMPLETE");
+				}
+				if (eventClass == null) {
+					eventClass = ecLog.getByIdentity(t.getLabel());
+				}
+				if (eventClass == null) {
+					if (t.getLabel().equals("Create fine"))
+						eventClass = ecLog.getByIdentity("Create Fine+complete");
+					if (t.getLabel().equals("Payment"))
+						eventClass = ecLog.getByIdentity("Payment+complete");
+					if (t.getLabel().equals("Send Fine"))
+						eventClass = ecLog.getByIdentity("Send Fine+complete");
+					if (t.getLabel().equals("Add Penalty"))
+						eventClass = ecLog.getByIdentity("Add penalty+complete");					
+					if (t.getLabel().equals("Send for Credit Collection"))
+						eventClass = ecLog.getByIdentity("Send for Credit Collection+complete");
+					if (t.getLabel().equals("Appeal to judge"))
+						eventClass = ecLog.getByIdentity("Appeal to Judge+complete");
+					if (t.getLabel().equals("Notification"))
+						eventClass = ecLog.getByIdentity("Insert Fine Notification+complete");
+					if (t.getLabel().equals("Appeal to Prefecture"))
+						eventClass = ecLog.getByIdentity("Insert Date Appeal to Prefecture+complete");
+					if (t.getLabel().equals("Send Appeal"))
+						eventClass = ecLog.getByIdentity("Send Appeal to Prefecture+complete");
+					if (t.getLabel().equals("Receive result"))
+						eventClass = ecLog.getByIdentity("Receive Result Appeal from Prefecture+complete");
+					if (t.getLabel().equals("Notify Offender"))
+						eventClass = ecLog.getByIdentity("Notify Result Appeal to Offender+complete");
+				}
+				if (eventClass != null) {
+					System.out.println("Transition "+t.getLabel()+" -> EventClass "+eventClass.getId());
+					mapping.put(t, eventClass);
+				} else {
+					System.out.println("Transition "+t.getLabel()+" -> EventClass "+evClassDummy.getId());
+					mapping.put(t, evClassDummy);
+					t.setInvisible(true);
+				}
+				
+			}
+			return mapping;
+		}
+		
 		for (Transition t : net.getTransitions()) {
-			//System.out.println("Find Partner for: "+t.getLabel());
-			//for (XEventClass x: ecLog.getClasses()) {
-			//	System.out.println(x.getId());
-			//}
-			//System.out.println( ecLog.toString());
+			//for standard classifiers this maps transitions onto the activity with the same concept:name+complete as lifecycle information (all but BPI2012)
+			//for name classifiers this maps transitions onto the event with the same concept:name (BPI2012)
 			//TODO: this part is rather hacky, I'll admit.
 			XEventClass eventClass = ecLog.getByIdentity(t.getLabel() + "+complete");
-			//if (eventClass == null) {
-			//	eventClass = ecLog.getByIdentity(t.getLabel() + "+START");
-			//}
 			if (eventClass == null) {
 				eventClass = ecLog.getByIdentity(t.getLabel() + "+COMPLETE");
 			}
-			//if (eventClass == null) {
-			//	eventClass = ecLog.getByIdentity(t.getLabel() + "+SCHEDULE");
-			//}
 			if (eventClass == null) {
 				eventClass = ecLog.getByIdentity(t.getLabel());
 			}

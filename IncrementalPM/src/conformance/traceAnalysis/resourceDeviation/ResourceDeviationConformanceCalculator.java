@@ -193,7 +193,7 @@ public class ResourceDeviationConformanceCalculator implements IncrementalConfor
 				deviationsRelative.get(activity).put(resource.getKey(), resource.getValue()/this.cnts.get(activity));
 			}
 		}
-		result.setResourceDeviations(deviationsRelative);
+		result.setResourceDeviations(this.violatingResourcesAbsolute);
 		return result;
 	}
 }

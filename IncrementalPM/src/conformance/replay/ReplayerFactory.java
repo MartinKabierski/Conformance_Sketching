@@ -1,11 +1,14 @@
 package conformance.replay;
 
+import org.deckfour.xes.classification.XEventClass;
 import org.deckfour.xes.classification.XEventClasses;
 import org.deckfour.xes.classification.XEventClassifier;
+import org.deckfour.xes.classification.XEventNameClassifier;
 import org.deckfour.xes.info.XLogInfo;
 import org.deckfour.xes.info.XLogInfoFactory;
 import org.deckfour.xes.info.impl.XLogInfoImpl;
 import org.deckfour.xes.model.XLog;
+import org.deckfour.xes.model.impl.XLogImpl;
 import org.processmining.models.graphbased.directed.petrinet.Petrinet;
 import org.processmining.models.graphbased.directed.petrinet.PetrinetGraph;
 import org.processmining.models.graphbased.directed.petrinet.elements.Place;
@@ -35,11 +38,9 @@ public class ReplayerFactory {
 	 * @param calculateIncrementally
 	 * @return
 	 */
-	public static Replayer createReplayer(PetrinetGraph net, XLog log, TransEvClassMapping mapping, boolean calculateIncrementally, Marking initialMarking, Marking finalMarking) {
-		XEventClassifier eventClassifier=XLogInfoImpl.NAME_CLASSIFIER;
-		XLogInfo summary = XLogInfoFactory.createLogInfo(log, eventClassifier);
+	public static Replayer createReplayer(PetrinetGraph net, XLog log, TransEvClassMapping mapping, XEventClassifier classifier, boolean calculateIncrementally, Marking initialMarking, Marking finalMarking) {
+		XLogInfo summary = XLogInfoFactory.createLogInfo(log, classifier);
 		XEventClasses classes = summary.getEventClasses();
-		
 		ReplayerParameters parameters;
 		if (calculateIncrementally) parameters = new ReplayerParameters.Default(THREADS_SAMPLING, Debug.NONE);
 		else if (!calculateIncrementally) parameters = new ReplayerParameters.Default(THREADS_BASELINE, Debug.NONE);
@@ -56,21 +57,17 @@ public class ReplayerFactory {
 	 * @param calculateIncrementally
 	 * @return
 	 */
-	public static Replayer createReplayer(PetrinetGraph net, XLog log, TransEvClassMapping mapping, int noThreads, Marking initialMarking, Marking finalMarking) {
-		XEventClassifier eventClassifier=XLogInfoImpl.NAME_CLASSIFIER;
-		XLogInfo summary = XLogInfoFactory.createLogInfo(log, eventClassifier);
+	public static Replayer createReplayer(PetrinetGraph net, XLog log, TransEvClassMapping mapping, XEventClassifier classifier, int noThreads, Marking initialMarking, Marking finalMarking) {
+		XLogInfo summary = XLogInfoFactory.createLogInfo(log, classifier);
 		XEventClasses classes = summary.getEventClasses();
-		
 		//System.out.println(Runtime.getRuntime().availableProcessors() / 4);
 		ReplayerParameters parameters = new ReplayerParameters.Default(noThreads, Debug.NONE);
 		return new Replayer(parameters, (Petrinet) net, initialMarking, finalMarking, classes, mapping, true);
 	}
 	
-	public static Replayer createReplayer(PetrinetGraph net, XLog log, TransEvClassMapping mapping, boolean calculateIncrementally) {
-		XEventClassifier eventClassifier=XLogInfoImpl.NAME_CLASSIFIER;
-		XLogInfo summary = XLogInfoFactory.createLogInfo(log, eventClassifier);
+	public static Replayer createReplayer(PetrinetGraph net, XLog log, TransEvClassMapping mapping, XEventClassifier classifier, boolean calculateIncrementally) {
+		XLogInfo summary = XLogInfoFactory.createLogInfo(log, classifier);
 		XEventClasses classes = summary.getEventClasses();
-		
 		ReplayerParameters parameters;
 		if (calculateIncrementally) parameters = new ReplayerParameters.Default(THREADS_SAMPLING, Debug.NONE);
 		else  parameters = new ReplayerParameters.Default(THREADS_BASELINE, Debug.NONE);

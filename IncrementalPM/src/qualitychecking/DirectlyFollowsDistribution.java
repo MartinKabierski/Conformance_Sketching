@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.apache.commons.math3.distribution.ChiSquaredDistribution;
 import org.apache.commons.math3.stat.inference.ChiSquareTest;
 import org.deckfour.xes.model.XEvent;
 import org.deckfour.xes.model.XTrace;
@@ -65,15 +66,39 @@ public class DirectlyFollowsDistribution implements AbstractValueDistribution {
 			if (this.directlyFollowsCountsAbsolute.containsKey(value)) {
 				observed1[i] = this.directlyFollowsCountsAbsolute.get(value);  
 			}
+
 			if (validationDistributionCast.directlyFollowsCountsAbsolute.containsKey(value)) { 
 				observed2[i] = validationDistributionCast.directlyFollowsCountsAbsolute.get(value);
 			}
+		
 			i++;
 		}
+
 		ChiSquareTest cst = new ChiSquareTest(); 
 		return cst.chiSquareTestDataSetsComparison(observed1, observed2);
 	}
 	
+	public void printComparison(AbstractValueDistribution validationDistribution) {
+		Set<Pair<String, String>> allKeys = new HashSet<>(this.directlyFollowsCountsAbsolute.keySet());
+		DirectlyFollowsDistribution validationDistributionCast = (DirectlyFollowsDistribution) validationDistribution;
+		allKeys.addAll(validationDistributionCast.directlyFollowsCountsAbsolute.keySet());
+
+		long[] observed1 = new long[allKeys.size()];
+		long[] observed2 = new long[allKeys.size()];
+
+		int i = 0;
+		for (Pair<String, String> value : allKeys) {
+			if (this.directlyFollowsCountsAbsolute.containsKey(value)) {
+				observed1[i] = this.directlyFollowsCountsAbsolute.get(value);  
+			}
+
+			if (validationDistributionCast.directlyFollowsCountsAbsolute.containsKey(value)) { 
+				observed2[i] = validationDistributionCast.directlyFollowsCountsAbsolute.get(value);
+			}
+			System.out.println(observed1[i]+", "+observed2[i]);
+			i++;
+		}
+	}
 	
 	public double computeTotalDistance(AbstractValueDistribution validationDistribution) {
 		DirectlyFollowsDistribution validationDistributionCast = (DirectlyFollowsDistribution) validationDistribution;
@@ -119,6 +144,33 @@ public class DirectlyFollowsDistribution implements AbstractValueDistribution {
 	public DirectlyFollowsDistribution emptyCopy() {
 		DirectlyFollowsDistribution newDFD = new DirectlyFollowsDistribution();
 		return newDFD;
+	}
+	
+	
+	public static void main(String[] args) {
+		long[] x = {48, 22, 33, 47};
+		long[] y = {35, 36, 42, 27};
+		double alpha = 0.05;
+		int degreesOfFreedom = (x.length-1);
+		
+		ChiSquareTest cst = new ChiSquareTest();
+		ChiSquaredDistribution x2 = new ChiSquaredDistribution(3);
+		double chiSquareAlphaDoF = x2.inverseCumulativeProbability(1-0.05);
+		
+		System.out.println("N0: x and y conform to the same distribution");
+		System.out.println("N1: x and y conform to different same distribution");
+		System.out.println("alpha: "+alpha);
+		System.out.println("Degrees of Freedom: "+degreesOfFreedom);
+		System.out.println();
+		System.out.println("X²_0: "+cst.chiSquareDataSetsComparison(x, y));
+		System.out.println("X_"+alpha+"_"+degreesOfFreedom+": "+chiSquareAlphaDoF);
+		System.out.println("p-Value(X²_0): "+cst.chiSquareTestDataSetsComparison(x, y));
+		System.out.println();
+		System.out.println("Comparing p-Values (p-Value < alpha?->reject N0):");
+		System.out.println(cst.chiSquareTestDataSetsComparison(x, y)+"<"+alpha+"? ->"+(cst.chiSquareTestDataSetsComparison(x, y)<0.05?"Reject N0, Accept N1":"Do not reject N0"));
+		System.out.println();
+		System.out.println("Comparing X² Statistics (X² > X²_"+alpha+"_"+degreesOfFreedom+"? -> reject N0):");
+		System.out.println(cst.chiSquareDataSetsComparison(x, y)+">"+chiSquareAlphaDoF+"?  -> "+(cst.chiSquareDataSetsComparison(x, y)>chiSquareAlphaDoF?"Reject N0, Accept N1":"Do not reject N0"));		
 	}
 
 }
