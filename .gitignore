@@ -1,3 +1,5 @@
 *.aux
 *.log
 *synctex.gz
+Evaluation/.idea/*
+Evaluation/__pycache__/*
