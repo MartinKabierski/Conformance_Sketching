@@ -4,7 +4,7 @@
 This repository contains the source code, the end-user plugins and the evaluation result files for incremental conformance checking, as proposed in the paper ["Sampling and Approximation Techniques for efficient Process Conformance Checking"](https://www.researchgate.net/publication/347447789_Sampling_and_approximation_techniques_for_efficient_process_conformance_checking).
 
 The approaches provided include:
-* Three conformance measures: Fitness, deviating activities and non-conformant resource attributes
+* Three conformance measures: Fitness, deviating activities and resource attributes related to non-conformant behaviour
 * Event-log sampling with statistical completeness guarantees
 * Methods for the approximation of said conformance measures
 * Quality retainment approaches to further stabilize the sample-based conformance result.
@@ -15,7 +15,7 @@ The methods are implemented as end-user plugins for the [Process Mining Toolkit]
 ## Getting started
 ### Installation
 1. Clone this repo (for help see this [tutorial](https://help.github.com/articles/cloning-a-repository/)).
-2. Install the [Eclipse IDE](https://www.eclipse.org/downloads/) and import th IncrementalPM directory as a new project.
+2. Install the [Eclipse IDE](https://www.eclipse.org/downloads/) and import the IncrementalPM directory as a new project.
 3. In Eclipse, install [Apache IvyDE](https://ant.apache.org/ivy/ivyde/), and resolve all dependencies of the imported project.
 4. You are done - you may run your local copy of ProM using either "ProM Package Manager (IncrementalPM).launch" for the package Manager or "ProM with UITopia (IncrementalPM).launch" for ProM itself. 
 
@@ -29,7 +29,7 @@ In the project, two plugins are provided:
 
 
 ## Evaluation Results
-The result files, figures and plotting scripts used for the evaluation in the paper are located in the directory "evaluation". In the directory the top-level python script "plot.py" generates a set of plots based on the .csv-files located in "results", which have been generated using the aforementioned evaluation-plugin. For the sake of clarity, the outputted plots are arranged into directories based on corresponding data set.
+The result files, figures and scripts plotting those figures, used for the evaluation in the paper, are located in the directory "Evaluation". In the directory the top-level python script "plot.py" generates a set of plots based on the .csv-files located in the directory "csv", which have been generated using the aforementioned evaluation-plugin. For the sake of clarity, the outputted plots are arranged into directories based on corresponding data set.
 
 
 ## Acknowledgements
