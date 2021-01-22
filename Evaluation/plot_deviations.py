@@ -24,9 +24,9 @@ def main(input_name):
 
     for chosen_k in k:
         for chosen_heuristics in heuristics:
-            bpi2012_orig = pd.read_csv("./results/" + input_name + "_baseline.csv", sep=';')
-            bpi2012_deviations = pd.read_csv("./results/" + input_name + "_deviations.csv", sep=';')
-            bpi2012_deviations_approx = pd.read_csv("./results/" + input_name + "_deviationsApprox.csv",
+            bpi2012_orig = pd.read_csv("./csv/" + input_name + "_baseline.csv", sep=';')
+            bpi2012_deviations = pd.read_csv("./csv/" + input_name + "_deviations.csv", sep=';')
+            bpi2012_deviations_approx = pd.read_csv("./csv/" + input_name + "_deviationsApprox.csv",
                                                     sep=';')
             bpi2012_deviations = bpi2012_deviations.loc[
                 (bpi2012_deviations["delta"] == chosen_delta) &

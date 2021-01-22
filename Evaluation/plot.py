@@ -6,12 +6,12 @@ import plot_parameter_comparison
 import plot_benchmark
 import plot_heuristics
 
+
 def main():
     plot_dataset_comparison.main()
     plot_benchmark.main()
 
-    inputs=["BPI_Challenge_2012","Detail_Incident_Activity", "Road_Traffic_Fines_Management_Process", "RTFM_model2"]
-    #inputs=["RTFM_model2"]
+    inputs = ["BPI_Challenge_2012", "Detail_Incident_Activity", "Road_Traffic_Fines_Management_Process", "RTFM_model2"]
     for input_name in inputs:
         os.makedirs(os.path.join(".", input_name), exist_ok=True)
 

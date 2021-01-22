@@ -15,22 +15,22 @@ def main():
 
         #build a dataframe for each result file
         #original
-        pra_baseline=pd.read_csv("./results/prAm6_baseline.csv", sep=';')
-        prb_baseline=pd.read_csv("./results/prBm6_baseline.csv", sep=';')
-        prc_baseline=pd.read_csv("./results/prCm6_baseline.csv", sep=';')
-        prd_baseline=pd.read_csv("./results/prDm6_baseline.csv", sep=';')
-        pre_baseline=pd.read_csv("./results/prEm6_baseline.csv", sep=';')
-        prf_baseline=pd.read_csv("./results/prFm6_baseline.csv", sep=';')
-        prg_baseline=pd.read_csv("./results/prGm6_baseline.csv", sep=';')
+        pra_baseline=pd.read_csv("./csv/prAm6_baseline.csv", sep=';')
+        prb_baseline=pd.read_csv("./csv/prBm6_baseline.csv", sep=';')
+        prc_baseline=pd.read_csv("./csv/prCm6_baseline.csv", sep=';')
+        prd_baseline=pd.read_csv("./csv/prDm6_baseline.csv", sep=';')
+        pre_baseline=pd.read_csv("./csv/prEm6_baseline.csv", sep=';')
+        prf_baseline=pd.read_csv("./csv/prFm6_baseline.csv", sep=';')
+        prg_baseline=pd.read_csv("./csv/prGm6_baseline.csv", sep=';')
 
         #fitness
-        pra_synthetic=pd.read_csv("./results/prAm6_synthetic.csv", sep=';')
-        prb_synthetic=pd.read_csv("./results/prBm6_synthetic.csv", sep=';')
-        prc_synthetic=pd.read_csv("./results/prCm6_synthetic.csv", sep=';')
-        prd_synthetic=pd.read_csv("./results/prDm6_synthetic.csv", sep=';')
-        pre_synthetic=pd.read_csv("./results/prEm6_synthetic.csv", sep=';')
-        prf_synthetic=pd.read_csv("./results/prFm6_synthetic.csv", sep=';')
-        prg_synthetic=pd.read_csv("./results/prGm6_synthetic.csv", sep=';')
+        pra_synthetic=pd.read_csv("./csv/prAm6_synthetic.csv", sep=';')
+        prb_synthetic=pd.read_csv("./csv/prBm6_synthetic.csv", sep=';')
+        prc_synthetic=pd.read_csv("./csv/prCm6_synthetic.csv", sep=';')
+        prd_synthetic=pd.read_csv("./csv/prDm6_synthetic.csv", sep=';')
+        pre_synthetic=pd.read_csv("./csv/prEm6_synthetic.csv", sep=';')
+        prf_synthetic=pd.read_csv("./csv/prFm6_synthetic.csv", sep=';')
+        prg_synthetic=pd.read_csv("./csv/prGm6_synthetic.csv", sep=';')
 
         print("Loaded input files")
         print()

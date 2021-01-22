@@ -27,11 +27,11 @@ def main():
     chosen_k = 0.2
 
     # BPI 2012#
-    bpi2012_baseline = pd.read_csv("./results/BPI_Challenge_2012_baseline.csv", sep=';')
-    bpi2012_fitness = pd.read_csv("./results/BPI_Challenge_2012_fitness.csv", sep=';')
-    bpi2012_fitnessApprox = pd.read_csv("./results/BPI_Challenge_2012_fitnessApprox.csv", sep=';')
-    bpi2012_deviations = pd.read_csv("./results/BPI_Challenge_2012_deviations.csv", sep=';')
-    bpi2012_deviationsApprox = pd.read_csv("./results/BPI_Challenge_2012_deviationsApprox.csv", sep=';')
+    bpi2012_baseline = pd.read_csv("./csv/BPI_Challenge_2012_baseline.csv", sep=';')
+    bpi2012_fitness = pd.read_csv("./csv/BPI_Challenge_2012_fitness.csv", sep=';')
+    bpi2012_fitnessApprox = pd.read_csv("./csv/BPI_Challenge_2012_fitnessApprox.csv", sep=';')
+    bpi2012_deviations = pd.read_csv("./csv/BPI_Challenge_2012_deviations.csv", sep=';')
+    bpi2012_deviationsApprox = pd.read_csv("./csv/BPI_Challenge_2012_deviationsApprox.csv", sep=';')
 
     bpi2012_fitness = bpi2012_fitness.loc[
         (bpi2012_fitness["delta"] == chosen_delta) & (bpi2012_fitness["alpha"] == chosen_alpha) & (
@@ -49,11 +49,11 @@ def main():
                     bpi2012_deviationsApprox["approximationMode"] == "NONALIGNING_KNOWN")]
 
     # BPI 2014#
-    bpi2014_baseline = pd.read_csv("./results/Detail_Incident_Activity_baseline.csv", sep=';')
-    bpi2014_fitness = pd.read_csv("./results/Detail_Incident_Activity_fitness.csv", sep=';')
-    bpi2014_fitnessApprox = pd.read_csv("./results/Detail_Incident_Activity_fitnessApprox.csv", sep=';')
-    bpi2014_deviations = pd.read_csv("./results/Detail_Incident_Activity_deviations.csv", sep=';')
-    bpi2014_deviationsApprox = pd.read_csv("./results/Detail_Incident_Activity_deviationsApprox.csv", sep=';')
+    bpi2014_baseline = pd.read_csv("./csv/Detail_Incident_Activity_baseline.csv", sep=';')
+    bpi2014_fitness = pd.read_csv("./csv/Detail_Incident_Activity_fitness.csv", sep=';')
+    bpi2014_fitnessApprox = pd.read_csv("./csv/Detail_Incident_Activity_fitnessApprox.csv", sep=';')
+    bpi2014_deviations = pd.read_csv("./csv/Detail_Incident_Activity_deviations.csv", sep=';')
+    bpi2014_deviationsApprox = pd.read_csv("./csv/Detail_Incident_Activity_deviationsApprox.csv", sep=';')
 
     bpi2014_fitness = bpi2014_fitness.loc[
         (bpi2014_fitness["delta"] == chosen_delta) & (bpi2014_fitness["alpha"] == chosen_alpha) & (
@@ -71,15 +71,15 @@ def main():
                     bpi2014_deviationsApprox["approximationMode"] == "NONALIGNING_KNOWN")]
 
     # road traffic fines
-    road_traffic_baseline = pd.read_csv("./results/Road_Traffic_Fines_Management_Process_baseline.csv",
+    road_traffic_baseline = pd.read_csv("./csv/Road_Traffic_Fines_Management_Process_baseline.csv",
                                         sep=';')
-    road_traffic_fitness = pd.read_csv("./results/Road_Traffic_Fines_Management_Process_fitness.csv", sep=';')
+    road_traffic_fitness = pd.read_csv("./csv/Road_Traffic_Fines_Management_Process_fitness.csv", sep=';')
     road_traffic_fitnessApprox = pd.read_csv(
-        "./results/Road_Traffic_Fines_Management_Process_fitnessApprox.csv", sep=';')
-    road_traffic_deviations = pd.read_csv("./results/Road_Traffic_Fines_Management_Process_deviations.csv",
+        "./csv/Road_Traffic_Fines_Management_Process_fitnessApprox.csv", sep=';')
+    road_traffic_deviations = pd.read_csv("./csv/Road_Traffic_Fines_Management_Process_deviations.csv",
                                           sep=';')
     road_traffic_deviationsApprox = pd.read_csv(
-        "./results/Road_Traffic_Fines_Management_Process_deviationsApprox.csv", sep=';')
+        "./csv/Road_Traffic_Fines_Management_Process_deviationsApprox.csv", sep=';')
 
     road_traffic_fitness = road_traffic_fitness.loc[
         (road_traffic_fitness["delta"] == chosen_delta) & (road_traffic_fitness["alpha"] == chosen_alpha) & (
@@ -99,16 +99,16 @@ def main():
                     road_traffic_deviationsApprox["k"] == chosen_k) & (
                     road_traffic_deviationsApprox["approximationMode"] == "NONALIGNING_KNOWN")]
 
-    #random dude traffic fines
-    rdRTF_baseline = pd.read_csv("./results/RTFM_model2_baseline.csv",
+    #reference road traffic fines
+    rdRTF_baseline = pd.read_csv("./csv/RTFM_model2_baseline.csv",
                                         sep=';')
-    rdRTF_fitness = pd.read_csv("./results/RTFM_model2_fitness.csv", sep=';')
+    rdRTF_fitness = pd.read_csv("./csv/RTFM_model2_fitness.csv", sep=';')
     rdRTF_fitnessApprox = pd.read_csv(
-        "./results/RTFM_model2_fitnessApprox.csv", sep=';')
-    rdRTF_deviations = pd.read_csv("./results/RTFM_model2_deviations.csv",
+        "./csv/RTFM_model2_fitnessApprox.csv", sep=';')
+    rdRTF_deviations = pd.read_csv("./csv/RTFM_model2_deviations.csv",
                                           sep=';')
     rdRTF_deviationsApprox = pd.read_csv(
-        "./results/RTFM_model2_deviationsApprox.csv", sep=';')
+        "./csv/RTFM_model2_deviationsApprox.csv", sep=';')
 
     rdRTF_fitness = rdRTF_fitness.loc[
         (rdRTF_fitness["delta"] == chosen_delta) & (rdRTF_fitness["alpha"] == chosen_alpha) & (
@@ -156,7 +156,7 @@ def main():
     ax1.set_yscale('log')
     ax1.set_ylabel('Runtime (relative)')
     ax1.set_ylim(0.0007, 10)
-    ax1.set_yticks([0.001, 0.01, 0.1, 1.0, 10.0])
+    ax1.set_yticks([0.001, 0.01, 0.1, 1.0])
     ax1.set_yticklabels(["0.1%", "1%", "10%", "100%"])
     ax1.set_title('BPI-12', fontsize=18)
     ax1.boxplot(bpi2012_list)
@@ -182,6 +182,7 @@ def main():
 
     #f.show()
     f.savefig("./real_computing_time.pdf", bbox_inches='tight')
+    plt.clf()
 
     # plot sampled trace comparisons
     bpi2012_orig_mean = bpi2012_baseline["logSize"].mean()
@@ -215,7 +216,6 @@ def main():
     ax1.set_yticklabels(["0.1%", "1%", "10%", "100%"])
     ax1.set_title('BPI-12', fontsize=18)
     ax1.boxplot(bpi2012_list)
-    ax1.boxplot(bpi2012_list)
     # ax1.axhline(1, color='b', linestyle='--')
     ax1.set_xticklabels(x_ticks_labels, rotation='horizontal', fontsize=18)
     ax1.tick_params(length=6, width=2)
@@ -237,6 +237,7 @@ def main():
 
     #f.show()
     f.savefig("./real_traces.pdf", bbox_inches='tight')
+    plt.clf()
 
     # plot fitness comparisons
     bpi2012_orig_mean = bpi2012_baseline["fitness"].mean()
@@ -284,6 +285,7 @@ def main():
 
     #f.show()
     f.savefig("./real_fitness.pdf", bbox_inches='tight')
+    plt.clf()
 
 #construct plots for all 4 datasets
     bpi2012_orig_mean = bpi2012_baseline["time"].mean()
@@ -351,6 +353,7 @@ def main():
 
     #f.show()
     f.savefig("./real4_computing_time.pdf", bbox_inches='tight')
+    plt.clf()
 
     bpi2012_orig_mean = bpi2012_baseline["logSize"].mean()
     bpi2012_list = []
@@ -389,7 +392,6 @@ def main():
     ax1.set_yticks([0.001, 0.01, 0.1, 1.0])
     ax1.set_yticklabels(["0.1%", "1%", "10%", "100%"])
     ax1.set_title('BPI-12', fontsize=18)
-    ax1.boxplot(bpi2012_list)
     ax1.boxplot(bpi2012_list)
     # ax1.axhline(1, color='b', linestyle='--')
     ax1.set_xticklabels(x_ticks_labels, rotation='horizontal', fontsize=18)

@@ -10,9 +10,9 @@ def main(input_name):
     plt.rcParams.update(font)
 
     # read in data frame
-    bpi2012 = pd.read_csv(os.path.join(".", "results", str(input_name) + "_fitness.csv"), sep=';')
-    bpi2012approx = pd.read_csv(os.path.join(".", "results", str(input_name) + "_fitnessApprox.csv"), sep=';')
-    bpi2012_orig = pd.read_csv(os.path.join(".", "results", str(input_name) + "_baseline.csv"), sep=';')
+    bpi2012 = pd.read_csv(os.path.join(".", "csv", str(input_name) + "_fitness.csv"), sep=';')
+    bpi2012approx = pd.read_csv(os.path.join(".", "csv", str(input_name) + "_fitnessApprox.csv"), sep=';')
+    bpi2012_orig = pd.read_csv(os.path.join(".", "csv", str(input_name) + "_baseline.csv"), sep=';')
     bpi2012_orig_mean = bpi2012_orig["fitness"].mean()
     bpi2012_orig_time_mean = bpi2012_orig["time"].mean()
     bpi2012_orig_traces = bpi2012_orig["logSize"].mean()
