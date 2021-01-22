@@ -13,11 +13,11 @@ def main(input_name):
     blue_patch = mpatches.Patch(color='blue', label='Original')
 
     # build a dataframe for each result file
-    bpi2012_deviations = pd.read_csv(os.path.join(".", "src", str(input_name) + "_deviations.csv"),
+    bpi2012_deviations = pd.read_csv(os.path.join(".", "csv", str(input_name) + "_deviations.csv"),
                                      sep=';')
     bpi2012_deviationsApprox = pd.read_csv(
-        os.path.join(".", "src", str(input_name) + "_deviationsApprox.csv"), sep=';')
-    bpi2012_prefixsuffix = pd.read_csv(os.path.join(".", "src", str(input_name) + "_prefixsuffix.csv"),
+        os.path.join(".", "csv", str(input_name) + "_deviationsApprox.csv"), sep=';')
+    bpi2012_prefixsuffix = pd.read_csv(os.path.join(".", "csv", str(input_name) + "_prefixsuffix.csv"),
                                        sep=';')
 
     # set parameters for original-to-implementation comparison for all three logs
