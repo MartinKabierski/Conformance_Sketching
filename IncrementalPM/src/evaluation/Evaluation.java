@@ -101,11 +101,15 @@ public class Evaluation{
 		//sampleSizeEvaluation(context);
 		return null;
 	}
-	
+	/**
+	*
+	* Reference function, running one iteration of a baseline conformance calculation without sampling and each of the proposed use cases
+	*
+	**/
 	private void referenceEvaluation(UIPluginContext context) throws Exception{
 		//log and petri net files to be used
-		String[] logNames = {"FAILS.LoanApprovalConfiguration1", "WORKS.LoanApprovalConfiguration2"};
-		String[] netNames = {"FAILS.petrinetsplitminer", "WORKS.petrinethilpminer"};
+		String[] logNames = {"Road_Traffic_Fines_Management_Process"};
+		String[] netNames = {"Road_Traffic_Fines_Management_Process"};
 		
 		System.out.println("Evaluating parameters");
 		for(int k=0; k<logNames.length; k++) {
