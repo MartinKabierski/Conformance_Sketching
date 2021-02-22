@@ -45,6 +45,7 @@ import org.processmining.models.graphbased.directed.petrinet.impl.PetrinetFactor
 import org.processmining.models.semantics.petrinet.Marking;
 import org.processmining.plugins.connectionfactories.logpetrinet.EvClassLogPetrinetConnectionFactoryUI;
 import org.processmining.plugins.connectionfactories.logpetrinet.TransEvClassMapping;
+import org.processmining.plugins.petrinet.replayer.ui.PNReplayerUI;
 import org.processmining.plugins.petrinet.replayresult.PNRepResult;
 import org.processmining.plugins.petrinet.replayresult.StepTypes;
 import org.processmining.plugins.pnml.base.Pnml;
@@ -60,6 +61,7 @@ import nl.tue.alignment.Progress;
 import nl.tue.alignment.Replayer;
 import nl.tue.alignment.TraceReplayTask.TraceReplayResult;
 import nl.tue.astar.AStarException;
+import plugins.IncrementalPNReplayerUI;
 import qualitychecking.AbstractValueDistribution;
 import qualitychecking.QualityCheckManager;
 import resourcedeviations.ResourceAssignment;
@@ -89,192 +91,92 @@ public class Evaluation{
 	@UITopiaVariant(affiliation = "Humboldt-University Berlin", author = "Martin Bauer", email = "bauemart@hu-berlin.de", uiLabel = UITopiaVariant.USEPLUGIN)
 	@PluginVariant(variantLabel = "TEST - Evaluate Incremental Conformance Checker", requiredParameterLabels = {})
 	public GlobalConformanceResult evalueICC(final UIPluginContext context) throws Exception {
-		//test(context);
-		baselineResultsEvaluation(context);
-		parameterEvaluation(context);
-		prefixsuffixEvaluation(context);
-		//TODO synthetic with delta=0.01 on C does not finish (here N>500 (logsize))
-		syntheticEvaluation(context);
-		resourceDeviationEvaluation(context);
-		qualityCheckingEvaluation(context);	
+		referenceEvaluation(context);
+		//baselineResultsEvaluation(context);
+		//parameterEvaluation(context);
+		//prefixsuffixEvaluation(context);
+		//syntheticEvaluation(context);
+		//resourceDeviationEvaluation(context);
+		//qualityCheckingEvaluation(context);	
 		//sampleSizeEvaluation(context);
 		return null;
 	}
+	
+	private void referenceEvaluation(UIPluginContext context) throws Exception{
+		//log and petri net files to be used
+		String[] logNames = {"FAILS.LoanApprovalConfiguration1", "WORKS.LoanApprovalConfiguration2"};
+		String[] netNames = {"FAILS.petrinetsplitminer", "WORKS.petrinethilpminer"};
 		
-	private void test(UIPluginContext context) throws Exception { 
-		//String[] inputNames = {"Road_Traffic_Fines_Management_Process"/*, "RTFM_model2"*/};
-		String[] inputNames = {"BPI_Challenge_2012"};
-		//String[] inputNames = {"Detail_Incident_Activity"};
-		//System.setOut(new PrintStream(new FileOutputStream("TEST.txt")));
-		for(String input : inputNames) {
-			System.out.println("	>"+input);
-			String NET_PATH = "input"+File.separator+input + ".pnml";
-			String LOG_PATH = "input"+File.separator+input + ".xes";
+		System.out.println("Evaluating parameters");
+		for(int k=0; k<logNames.length; k++) {
+			System.out.println(">Loading log "+logNames[k]+" and net "+netNames[k]);
+			String NET_PATH = "input/Misc/" + netNames[k] + ".pnml";
+			String LOG_PATH = "input/Misc/" + logNames[k] + ".xes";
 			XLog log = loadLog(LOG_PATH);
 			PetrinetGraph net = importPNML(NET_PATH, context);
-			System.out.println("	>Loaded log and net");
+			System.out.println(">Done");
 			
-			XEventClassifier classifier = deriveClassifierForLog(input);
-			TransEvClassMapping mapping = computeTransEventMapping(input, log, net, classifier);
+		//manually set event classifier and log-to-net mapping
+			XEventClassifier classifier = XLogInfoImpl.STANDARD_CLASSIFIER;
+			TransEvClassMapping mapping = computeTransEventMapping(logNames[k], log, net, classifier);	
 			
-			//get resource deviations
-			List<IccParameter> settings = new ArrayList<IccParameter>();
-			//settings.add (new IccParameter(0.01, 0.99, 0.01, 0.2, IncrementalConformanceChecker.Goals.RESOURCES, 	false, false, false));
-			
-			settings.add (new IccParameter(0.01, 0.99, 0.01, 0.2, IncrementalConformanceChecker.Goals.FITNESS, 		false, false, false));
-			settings.add (new IccParameter(0.01, 0.99, 0.01, 0.2, IncrementalConformanceChecker.Goals.FITNESS, 		false, false, false));
-			settings.add (new IccParameter(0.01, 0.99, 0.01, 0.2, IncrementalConformanceChecker.Goals.FITNESS, 		false, false, false));
-			/*
-			settings.add (new IccParameter(0.01, 0.99, 0.01, 0.2, IncrementalConformanceChecker.Goals.FITNESS, 		true,  false, false));
-			settings.add (new IccParameter(0.01, 0.99, 0.01, 0.2, IncrementalConformanceChecker.Goals.FITNESS, 		true,  false, false));
-			settings.add (new IccParameter(0.01, 0.99, 0.01, 0.2, IncrementalConformanceChecker.Goals.FITNESS, 		true,  false, false));
-			*/
-			settings.add (new IccParameter(0.01, 0.99, 0.01, 0.2, IncrementalConformanceChecker.Goals.DEVIATIONS, 	false, false, false));
-			settings.add (new IccParameter(0.01, 0.99, 0.01, 0.2, IncrementalConformanceChecker.Goals.DEVIATIONS, 	false, false, false));
-			settings.add (new IccParameter(0.01, 0.99, 0.01, 0.2, IncrementalConformanceChecker.Goals.DEVIATIONS, 	false, false, false));
-			settings.add (new IccParameter(0.01, 0.99, 0.01, 0.2, IncrementalConformanceChecker.Goals.DEVIATIONS, 	false, false, false));
-			settings.add (new IccParameter(0.01, 0.99, 0.01, 0.2, IncrementalConformanceChecker.Goals.DEVIATIONS, 	false, false, false));
-
-			//settings.add (new IccParameter(0.01, 0.99, 0.01, 0.2, IncrementalConformanceChecker.Goals.FITNESS, 	false, false, false));
-			//settings.add (new IccParameter(0.001, 0.99, 0.01, 0.2, IncrementalConformanceChecker.Goals.DEVIATIONS, 	false, false, false));
-			//settings.add (new IccParameter(0.0006, 0.99, 0.01, 0.2, IncrementalConformanceChecker.Goals.DEVIATIONS, 	false, false, false));
-			//settings.add (new IccParameter(0.0006, 0.99, 0.01, 0.2, IncrementalConformanceChecker.Goals.DEVIATIONS, 	false, false, false));
-			//settings.add (new IccParameter(0.0006, 0.99, 0.01, 0.2, IncrementalConformanceChecker.Goals.DEVIATIONS, 	false, false, false));
-			//settings.add (new IccParameter(0.0006, 0.99, 0.01, 0.2, IncrementalConformanceChecker.Goals.DEVIATIONS, 	false, false, false));
-			//settings.add (new IccParameter(0.0006, 0.99, 0.01, 0.2, IncrementalConformanceChecker.Goals.DEVIATIONS, 	false, false, false));
-
-			//settings.add (new IccParameter(0.05, 0.99, 0.01, 0.2, IncrementalConformanceChecker.Goals.DEVIATIONS, 	false, false, false));
-			//settings.add (new IccParameter(0.05, 0.99, 0.01, 0.2, IncrementalConformanceChecker.Goals.DEVIATIONS, 	false, false, false));	
-			
-			settings.add (new IccParameter(0.01, 0.99, 0.01, 0.1, IncrementalConformanceChecker.Goals.DEVIATIONS, 	true, IncrementalConformanceChecker.Heuristics.NONALIGNING_KNOWN, 	false, false));
-			settings.add (new IccParameter(0.01, 0.99, 0.01, 0.1, IncrementalConformanceChecker.Goals.DEVIATIONS, 	true, IncrementalConformanceChecker.Heuristics.NONALIGNING_KNOWN, 	false, false));
-			settings.add (new IccParameter(0.01, 0.99, 0.01, 0.1, IncrementalConformanceChecker.Goals.DEVIATIONS, 	true, IncrementalConformanceChecker.Heuristics.NONALIGNING_KNOWN, 	false, false));
-			settings.add (new IccParameter(0.01, 0.99, 0.01, 0.1, IncrementalConformanceChecker.Goals.DEVIATIONS, 	true, IncrementalConformanceChecker.Heuristics.NONALIGNING_KNOWN, 	false, false));
-			settings.add (new IccParameter(0.01, 0.99, 0.01, 0.1, IncrementalConformanceChecker.Goals.DEVIATIONS, 	true, IncrementalConformanceChecker.Heuristics.NONALIGNING_KNOWN, 	false, false));
-			settings.add (new IccParameter(0.01, 0.99, 0.01, 0.2, IncrementalConformanceChecker.Goals.DEVIATIONS, 	true, IncrementalConformanceChecker.Heuristics.NONALIGNING_KNOWN, 	false, false));
-			settings.add (new IccParameter(0.01, 0.99, 0.01, 0.2, IncrementalConformanceChecker.Goals.DEVIATIONS, 	true, IncrementalConformanceChecker.Heuristics.NONALIGNING_KNOWN, 	false, false));
-			settings.add (new IccParameter(0.01, 0.99, 0.01, 0.2, IncrementalConformanceChecker.Goals.DEVIATIONS, 	true, IncrementalConformanceChecker.Heuristics.NONALIGNING_KNOWN, 	false, false));
-			settings.add (new IccParameter(0.01, 0.99, 0.01, 0.2, IncrementalConformanceChecker.Goals.DEVIATIONS, 	true, IncrementalConformanceChecker.Heuristics.NONALIGNING_KNOWN, 	false, false));
-			settings.add (new IccParameter(0.01, 0.99, 0.01, 0.2, IncrementalConformanceChecker.Goals.DEVIATIONS, 	true, IncrementalConformanceChecker.Heuristics.NONALIGNING_KNOWN, 	false, false));
-			settings.add (new IccParameter(0.01, 0.99, 0.01, 0.3, IncrementalConformanceChecker.Goals.DEVIATIONS, 	true, IncrementalConformanceChecker.Heuristics.NONALIGNING_KNOWN, 	false, false));
-			settings.add (new IccParameter(0.01, 0.99, 0.01, 0.3, IncrementalConformanceChecker.Goals.DEVIATIONS, 	true, IncrementalConformanceChecker.Heuristics.NONALIGNING_KNOWN, 	false, false));
-			settings.add (new IccParameter(0.01, 0.99, 0.01, 0.3, IncrementalConformanceChecker.Goals.DEVIATIONS, 	true, IncrementalConformanceChecker.Heuristics.NONALIGNING_KNOWN, 	false, false));
-			settings.add (new IccParameter(0.01, 0.99, 0.01, 0.3, IncrementalConformanceChecker.Goals.DEVIATIONS, 	true, IncrementalConformanceChecker.Heuristics.NONALIGNING_KNOWN, 	false, false));
-			settings.add (new IccParameter(0.01, 0.99, 0.01, 0.3, IncrementalConformanceChecker.Goals.DEVIATIONS, 	true, IncrementalConformanceChecker.Heuristics.NONALIGNING_KNOWN, 	false, false));
+		//or create ui for both and let user do this manually
+			//IncrementalPNReplayerUI pnReplayerUI = new IncrementalPNReplayerUI();
+			//Object[] resultConfiguration = pnReplayerUI.getConfiguration(context, net, log);
+			//TransEvClassMapping mapping = (TransEvClassMapping) resultConfiguration[PNReplayerUI.MAPPING];
+			//XEventClassifier classifier = pnReplayerUI.classifier;
 
 			
-			//settings.add (new IccParameter(0.05, 0.99, 0.01, 0.2, IncrementalConformanceChecker.Goals.DEVIATIONS, 	true, IncrementalConformanceChecker.Heuristics.NONALIGNING_KNOWN, 	false, false));
-			//settings.add (new IccParameter(0.05, 0.99, 0.01, 0.2, IncrementalConformanceChecker.Goals.DEVIATIONS, 	true, IncrementalConformanceChecker.Heuristics.NONALIGNING_KNOWN, 	false, false));
 			
-			//settings.add (new IccParameter(0.05, 0.99, 0.01, 0.2, IncrementalConformanceChecker.Goals.DEVIATIONS,   true, IncrementalConformanceChecker.Heuristics.NONALIGNING_ALL, 	false, false));
-			//settings.add (new IccParameter(0.05, 0.99, 0.01, 0.2, IncrementalConformanceChecker.Goals.DEVIATIONS, 	true, IncrementalConformanceChecker.Heuristics.NONALIGNING_ALL, 	false, false));
-			//settings.add (new IccParameter(0.05, 0.99, 0.01, 0.2, IncrementalConformanceChecker.Goals.DEVIATIONS, 	true, IncrementalConformanceChecker.Heuristics.NONALIGNING_ALL, 	false, false));
-//			
-//			settings.add (new IccParameter(0.01, 0.99, 0.01, 0.2, IncrementalConformanceChecker.Goals.RESOURCES, 	false, false, false));
-//			settings.add (new IccParameter(0.01, 0.99, 0.01, 0.2, IncrementalConformanceChecker.Goals.RESOURCES, 	false, false, false));
-//			settings.add (new IccParameter(0.01, 0.99, 0.01, 0.2, IncrementalConformanceChecker.Goals.RESOURCES, 	false, false, false));
-//
-//			settings.add (new IccParameter(0.01, 0.99, 0.01, 0.2, IncrementalConformanceChecker.Goals.RESOURCES, 	true, IncrementalConformanceChecker.Heuristics.NONALIGNING_KNOWN, 	false, false));
-//			settings.add (new IccParameter(0.01, 0.99, 0.01, 0.2, IncrementalConformanceChecker.Goals.RESOURCES, 	true, IncrementalConformanceChecker.Heuristics.NONALIGNING_KNOWN, 	false, false));
-//			settings.add (new IccParameter(0.01, 0.99, 0.01, 0.2, IncrementalConformanceChecker.Goals.RESOURCES, 	true, IncrementalConformanceChecker.Heuristics.NONALIGNING_KNOWN, 	false, false));			
-//			
-//			settings.add (new IccParameter(0.01, 0.99, 0.01, 0.2, IncrementalConformanceChecker.Goals.RESOURCES, 	true, IncrementalConformanceChecker.Heuristics.NONALIGNING_ALL, 	false, false));
-//			settings.add (new IccParameter(0.01, 0.99, 0.01, 0.2, IncrementalConformanceChecker.Goals.RESOURCES, 	true, IncrementalConformanceChecker.Heuristics.NONALIGNING_ALL, 	false, false));
-//			settings.add (new IccParameter(0.01, 0.99, 0.01, 0.2, IncrementalConformanceChecker.Goals.RESOURCES, 	true, IncrementalConformanceChecker.Heuristics.NONALIGNING_ALL, 	false, false));
-
-
-			for(IccParameter setting : settings) {
-				XLog copyLog = (XLog) log.clone();
-				ResourceAssignment resAssignment = new ResourceAssignment();
-				if (setting.getGoal() == IncrementalConformanceChecker.Goals.RESOURCES) {
-					ResourceAssignmentComputer assignmentComputer = new ResourceAssignmentComputer(0.20);
-					resAssignment = assignmentComputer.createResourceAssignment(copyLog);
-				}
-				IncrementalTraceAnalyzer<?> analyzer = TraceAnalyzerFactory.createTraceAnalyzer(setting, mapping, classifier, copyLog, net, resAssignment);
-				long start = System.currentTimeMillis();
-				System.out.println(setting.toString());
-				GlobalConformanceResult result = checkForGlobalConformanceWithICC(context, net, copyLog, analyzer, setting, null, null,start);
-				long end = System.currentTimeMillis();
-				
-				System.out.println(result.toString());
-				System.out.println(end-start);
-				System.out.println();
-			}
-			//get baseline result as comparison
-			Map<String,Double> deviationsRel=new HashMap<String,Double>();
+			ArrayList<IccParameter> list = new ArrayList<IccParameter>();
+			//fitness
+			list.add(new IccParameter(0.01, 0.99, 0.01, 0.1 , IncrementalConformanceChecker.Goals.FITNESS, false, false, false));
+			list.add(new IccParameter(0.01, 0.99, 0.01, 0.1 , IncrementalConformanceChecker.Goals.FITNESS, true, false, false));
+			//deviations
+			list.add(new IccParameter(0.01, 0.99, 0.01, 0.1 , IncrementalConformanceChecker.Goals.DEVIATIONS, false, false, false));
+			list.add(new IccParameter(0.01, 0.99, 0.01, 0.1 , IncrementalConformanceChecker.Goals.DEVIATIONS, true, IncrementalConformanceChecker.Heuristics.NONALIGNING_ALL, false, false));
+			list.add(new IccParameter(0.01, 0.99, 0.01, 0.1 , IncrementalConformanceChecker.Goals.DEVIATIONS, true, IncrementalConformanceChecker.Heuristics.NONALIGNING_KNOWN, false, false));
+			//resources - ensure that resource
+			ResourceAssignmentComputer assignmentComputer = new ResourceAssignmentComputer(0.20);
+			ResourceAssignment resAssignment = assignmentComputer.createResourceAssignment(log);
 			
+			list.add(new IccParameter(0.01, 0.99, 0.01, 0.1 , IncrementalConformanceChecker.Goals.RESOURCES, false, false, false));
+			list.add(new IccParameter(0.01, 0.99, 0.01, 0.1 , IncrementalConformanceChecker.Goals.RESOURCES, true, IncrementalConformanceChecker.Heuristics.NONALIGNING_ALL, false, false));
+			list.add(new IccParameter(0.01, 0.99, 0.01, 0.1 , IncrementalConformanceChecker.Goals.RESOURCES, true, IncrementalConformanceChecker.Heuristics.NONALIGNING_KNOWN, false, false));
+
+			//first check whether baseline replay algorithm works correctly
 			XLog copyLog = (XLog) log.clone();
 			Replayer replayer = ReplayerFactory.createReplayer(net, copyLog, mapping, classifier, false);
 			long start = System.currentTimeMillis();
-			PNRepResult result2 = replayer.computePNRepResult(Progress.INVISIBLE, copyLog);
+			PNRepResult baselineResult = replayer.computePNRepResult(Progress.INVISIBLE, copyLog);
 			long end = System.currentTimeMillis();
-			System.out.println("replay time Baseline:"+(end-start));
+			System.out.println("replay time of Baseline:"+(end-start)+"\n");
 			
-			double fitness = (Double) result2.getInfo().get("Trace Fitness");
-			System.out.println("Fitness: "+fitness);
-			//deviations
-			Map<String, Double> deviations = new HashMap<String, Double>();
-			int cnt=0;
-			for(SyncReplayResult replaySteps : result2) {
-				int noOccurences = replaySteps.getTraceIndex().size();
-				cnt+=noOccurences;
-				//System.out.println(replaySteps.getStepTypes().toString());
-				for (int j=0;j<replaySteps.getStepTypes().size();j++) {
-					//if(replaySteps.getStepTypes().get(j)== StepTypes.MINVI)
-						//cnt++;
-					if(replaySteps.getStepTypes().get(j)== StepTypes.L||replaySteps.getStepTypes().get(j)==StepTypes.MREAL) {
-						//cnt++;
-						//deviations.put(replaySteps.getNodeInstance().get(j).toString(),deviations.getOrDefault(replaySteps.getNodeInstance().get(j).toString(), 0.0)+1.0);
-						//System.out.println(mapping.toString());
-						//System.out.println(replaySteps.getStepTypes().get(j).toString()+" , "+replaySteps.getNodeInstance().get(j).toString());
-						if(replaySteps.getStepTypes().get(j)==StepTypes.MREAL) {
-							if(mapping.containsKey(replaySteps.getNodeInstance().get(j))){
-								deviations.put(mapping.get(replaySteps.getNodeInstance().get(j)).toString(),deviations.getOrDefault(mapping.get(replaySteps.getNodeInstance().get(j)).toString(), 0.0)+noOccurences);
-							}
-							else {
-								deviations.put(replaySteps.getNodeInstance().get(j).toString(),deviations.getOrDefault(replaySteps.getNodeInstance().get(j).toString(), 0.0)+noOccurences);
-							}
-						}
-						else if(replaySteps.getStepTypes().get(j)== StepTypes.L) {
-							deviations.put(replaySteps.getNodeInstance().get(j).toString(),deviations.getOrDefault(replaySteps.getNodeInstance().get(j).toString(), 0.0)+noOccurences);
-						}
-				//		//System.out.println("Updated Deviations: "+deviations);
-					}
-				}
+			
+			//then conduct experiments for sampling variants
+			for(IccParameter parameter : list) {
+				System.out.println("Parameter Evaluation>"+logNames[k]+" and net "+netNames[k]);
+				
+				copyLog=(XLog) log.clone();
+				IncrementalTraceAnalyzer<?> analyzer = TraceAnalyzerFactory.createTraceAnalyzer(parameter, mapping, classifier, log, net, resAssignment);
+				start = System.currentTimeMillis();
+				
+				//last param is seed for java.rndm - replace with fixed ssed if reproducability is desired
+				GlobalConformanceResult result = checkForGlobalConformanceWithICC(context, net, copyLog, analyzer, parameter, null, null, System.currentTimeMillis());
+				end = System.currentTimeMillis();
+				String out=String.join(";", 
+						Double.toString(parameter.getDelta()),Double.toString(parameter.getAlpha()),Double.toString(parameter.getEpsilon()),Double.toString(parameter.getK()),
+						Long.toString(end-start), Integer.toString(result.getCnt()),Integer.toString(result.getTotalVariants()), Integer.toString(result.getApproximatedVariants()),
+						Double.toString(result.getFitness()), result.getDeviations().toString(), parameter.getApproximationHeuristic().toString(), result.getResourceDeviations().toString()+"\n");
+				System.out.println(out+"\n");
 			}
-			//deviationsAbs=Maps.asMap(deviatingActivities.elementSet(), elem -> deviatingActivities.count(elem));
-			/*
-			double total = 0.0;
-			for (Entry<String, Double> x : deviations.entrySet()) {
-				total = total + x.getValue();
-			}
-			double test = total;
-			Map<String, Double> sortedDeviations =  deviations
-					.entrySet()
-					.stream()
-					.sorted(Map.Entry.<String, Double>comparingByValue().reversed())
-					.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue,
-					(e1, e2) -> e1, LinkedHashMap::new));
-			System.out.println("Total: "+total);
-			System.out.println("Absolute: "+sortedDeviations);
-			deviations.keySet().stream().forEach(x-> deviationsRel.put(x, deviations.get(x)/test));
-			sortedDeviations =  deviationsRel
-					.entrySet()
-					.stream()
-					.sorted(Map.Entry.<String, Double>comparingByValue().reversed())
-					.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue,
-					(e1, e2) -> e1, LinkedHashMap::new));
-			System.out.println("Relative: "+sortedDeviations);
-			System.out.println("Total number of SyncReplayResults: "+cnt);*/
 		}
 	}
-
-//	/**
-//	 * get results of the baseline conformance checking method for fitness, deviations and resource allocation
-//	 * @param context
-//	 * @throws Exception
-//	 */
-//	
+	
+	
+	
+	
+	
 	private void baselineResultsEvaluation(UIPluginContext context) throws Exception{
 		//String[] inputNames = {"RTFM_model2"};
 		//String[] inputNames = {"BPI_Challenge_2012"};
@@ -1044,6 +946,7 @@ public class Evaluation{
 	 * @param context
 	 * @throws Exception
 	 */
+	//TODO synthetic with delta=0.01 on C does not finish (here N>500 (logsize))
 	private void syntheticEvaluation(UIPluginContext context)throws Exception {
 		String[] inputNames = {"prAm6","prBm6","prCm6","prDm6","prEm6","prFm6","prGm6"};
 		System.out.println("Evaluating synthetic log model pairs");
@@ -1098,16 +1001,16 @@ public class Evaluation{
 //	 * @throws Exception
 //	 */
 	private void resourceDeviationEvaluation(UIPluginContext context) throws Exception {
-		//String[] inputNames = {"BPI_Challenge_2012"};
-		String[] inputNames = {"Road_Traffic_Fines_Management_Process", "RTFM_model2", "BPI_Challenge_2012", "Detail_Incident_Activity"};
+		String[] inputNames = {"BPI_Challenge_2012"};
+		//String[] inputNames = {"Road_Traffic_Fines_Management_Process", "RTFM_model2", "BPI_Challenge_2012", "Detail_Incident_Activity"};
 		System.out.println("Evaluating resource deviations");
 		int repetitions =10;
+		
+		System.setOut(new PrintStream(new FileOutputStream("ResourceOutput.txt")));
 		
 		//get resource deviations for baseline
 		for(String input : inputNames) {
 			System.out.println(">"+input);
-			PrintWriter baselineStats = new PrintWriter(input+"_baseline.csv", "UTF-8");
-			baselineStats.write(String.join(";","time","logSize","fitness","deviations","resources\n"));
 			String NET_PATH = "input/" + input + ".pnml";
 			String LOG_PATH = "input/" + input + ".xes";
 			XLog log = loadLog(LOG_PATH);
@@ -1189,7 +1092,6 @@ public class Evaluation{
 			list.add(new IccParameter(0.01, 0.99, 0.01, 0.1 , IncrementalConformanceChecker.Goals.RESOURCES, true, IncrementalConformanceChecker.Heuristics.NONALIGNING_KNOWN, false, false));
 			list.add(new IccParameter(0.01, 0.99, 0.01, 0.2 , IncrementalConformanceChecker.Goals.RESOURCES, true, IncrementalConformanceChecker.Heuristics.NONALIGNING_KNOWN, false, false));
 
-			
 			int total = repetitions*list.size();
 			GlobalConformanceResult result2 = null;
 			for(IccParameter parameter : list) {
@@ -1258,9 +1160,9 @@ public class Evaluation{
 					
 					System.out.println("Total Detected Resoure Activity Pairs: "+(deviatingResourcesPerActivitySample.size()/(double) deviatingResourcesPerActivity.size()));
 					System.out.println("Total involved Resource Activity Deviations: "+(double)sampleDeviationsPerActivity/totalDeviations);
-					resources2.close();
 				}
 			}
+			resources2.close();
 		}
 	}
 

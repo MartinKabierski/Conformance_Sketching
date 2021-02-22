@@ -62,6 +62,7 @@ import ressources.IccParameter;
 /**
  * @author MartinBauer
  */
+@Deprecated
 public class EvaluationTEST{
 	/**
 	 * Conduct evaluations of sample-and approximation based conbformance checking. 

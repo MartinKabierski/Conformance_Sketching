@@ -19,6 +19,6 @@
     <booleanAttribute key="org.eclipse.jdt.launching.DEFAULT_CLASSPATH" value="true"/>
     <stringAttribute key="org.eclipse.jdt.launching.MAIN_TYPE" value="org.processmining.contexts.uitopia.UI"/>
     <stringAttribute key="org.eclipse.jdt.launching.PROJECT_ATTR" value="IncrementalPM"/>
-    <stringAttribute key="org.eclipse.jdt.launching.VM_ARGUMENTS" value="-ea -Xmx8G -Djava.library.path=.//lib;..//lib/mac;//stdlib;/usr/local/lib"/>
+    <stringAttribute key="org.eclipse.jdt.launching.VM_ARGUMENTS" value="-da -Xmx8G -Djava.library.path=.//lib;..//lib/mac;//stdlib;/usr/local/lib"/>
     <stringAttribute key="yk-options" value="&#13;&#10;additional-options=&#13;&#10;snapshots-dir=&#13;&#10;"/>
 </launchConfiguration>
