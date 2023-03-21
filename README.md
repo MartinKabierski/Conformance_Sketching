@@ -1,13 +1,12 @@
 # Incremental Conformance Checking
-#### Project Status: [Active]
 
 This repository contains the source code, the end-user plugins and the evaluation result files for incremental conformance checking, as proposed in the paper ["Sampling and Approximation Techniques for efficient Process Conformance Checking"](https://www.researchgate.net/publication/347447789_Sampling_and_approximation_techniques_for_efficient_process_conformance_checking).
 
 The approaches provided include:
-* Three conformance measures: Fitness, deviating activities and resource attributes related to non-conformant behaviour
+* Three conformance measures: Fitness, deviating activities and resource attributes related to non-conformant behaviour (only available from code)
 * Event-log sampling with statistical completeness guarantees
 * Methods for the approximation of said conformance measures
-* Quality retainment approaches to further stabilize the sample-based conformance result.
+* Quality retainment approaches to further stabilize the sample-based conformance result. (only available from code)
 
 The methods are implemented as end-user plugins for the [Process Mining Toolkit](http://www.promtools.org/doku.php). The repository contains all configuration files for the local development and execution of ProM plugins using the Eclipse IDE.
 
@@ -24,7 +23,7 @@ For further instructions on the usage of ProM itself, or the deployment using ot
 
 ### Running the plugins
 In the project, two plugins are provided:
-* "Check global Conformance with Incremental Conformance Checker" - conducts a run of the sample-based conformance checking algorithm
+* "Check sample-based Conformance using Incremental Conformance Checking" - conducts a run of the sample-based conformance checking algorithm
 * "Evaluate Incremental Conformance Checker" - conducts the controlled experiments used for evaluation of the implemented approaches. The set of result files used in the paper, as well as the scripts for the creation of the plots are provided in the directory "evaluation_results".
 
 
@@ -36,7 +35,7 @@ The result files, figures and scripts plotting those figures, used for the evalu
 This work has received funding from the Deutsche Forschungsgemeinschaft [DFG](https://www.dfg.de/), grant number [421921612](https://gepris.dfg.de/gepris/projekt/421921612?context=projekt&task=showDetail&id=421921612&), and the [Alexander von Humboldt Foundation](http://www.humboldt-foundation.de/web/start.html).
 
 ## Contact
-martin.bauer@hu-berlin.de
+martin.kabierski@hu-berlin.de
 
 ### License
 We provide our code, under the MIT license.

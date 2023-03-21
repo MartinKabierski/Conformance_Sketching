@@ -28,7 +28,7 @@ import conformance.sampling.ThresholdCalculator;
 import conformance.traceAnalysis.IncrementalTraceAnalyzer;
 import conformance.traceAnalysis.TraceAnalysisTask;
 import nl.tue.astar.AStarException;
-import ressources.GlobalConformanceResult;
+import ressources.IncrementalConformanceResult;
 import ressources.IccParameter;
 public class IncrementalConformanceChecker {
 	//TODO should all these go into the parameter?
@@ -89,7 +89,7 @@ public class IncrementalConformanceChecker {
 	 */
 	//TODO add proper exception handling
 	//TODO bring structure into this mess
-	public GlobalConformanceResult apply(final UIPluginContext context, XLog log, PetrinetGraph net, SamplingMode samplingMode) {
+	public IncrementalConformanceResult apply(final UIPluginContext context, XLog log, PetrinetGraph net, SamplingMode samplingMode) {
 		//init
 		double fitnessAtInitialStop=0.0;
 		boolean initialExternal = true;
@@ -207,9 +207,10 @@ public class IncrementalConformanceChecker {
 					//System.out.println("Finished");
 					//stop remaining threads
 					executorService.shutdown();
-					GlobalConformanceResult result = this.calculator.getAnalysisResult();
+					IncrementalConformanceResult result = this.calculator.getAnalysisResult();
 					result.setCnt(sampledCnt);
 					result.fitnessAtFirst=fitnessAtInitialStop;
+					result.setIccParameter(parameter);
 					return result;
 				}
 			}

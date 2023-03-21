@@ -66,7 +66,7 @@ import qualitychecking.AbstractValueDistribution;
 import qualitychecking.QualityCheckManager;
 import resourcedeviations.ResourceAssignment;
 import resourcedeviations.ResourceAssignmentComputer;
-import ressources.GlobalConformanceResult;
+import ressources.IncrementalConformanceResult;
 import ressources.IccParameter;
 
 /**
@@ -87,10 +87,10 @@ public class Evaluation{
 
 	
 	//TODO incorporate classifier
-	@Plugin(name = "TEST - Evaluate Incremental Conformance Checker", returnLabels = { "Global Conformance Result" }, returnTypes = { GlobalConformanceResult.class }, parameterLabels = {}, userAccessible = true)
+	@Plugin(name = "TEST - Evaluate Incremental Conformance Checker", returnLabels = { "Global Conformance Result" }, returnTypes = { IncrementalConformanceResult.class }, parameterLabels = {}, userAccessible = true)
 	@UITopiaVariant(affiliation = "Humboldt-University Berlin", author = "Martin Bauer", email = "bauemart@hu-berlin.de", uiLabel = UITopiaVariant.USEPLUGIN)
 	@PluginVariant(variantLabel = "TEST - Evaluate Incremental Conformance Checker", requiredParameterLabels = {})
-	public GlobalConformanceResult evalueICC(final UIPluginContext context) throws Exception {
+	public IncrementalConformanceResult evalueICC(final UIPluginContext context) throws Exception {
 		referenceEvaluation(context);
 		//baselineResultsEvaluation(context);
 		//parameterEvaluation(context);
@@ -166,7 +166,7 @@ public class Evaluation{
 				start = System.currentTimeMillis();
 				
 				//last param is seed for java.rndm - replace with fixed ssed if reproducability is desired
-				GlobalConformanceResult result = checkForGlobalConformanceWithICC(context, net, copyLog, analyzer, parameter, null, null, System.currentTimeMillis());
+				IncrementalConformanceResult result = checkForGlobalConformanceWithICC(context, net, copyLog, analyzer, parameter, null, null, System.currentTimeMillis());
 				end = System.currentTimeMillis();
 				String out=String.join(";", 
 						Double.toString(parameter.getDelta()),Double.toString(parameter.getAlpha()),Double.toString(parameter.getEpsilon()),Double.toString(parameter.getK()),
@@ -618,7 +618,7 @@ public class Evaluation{
 					//Replayer replayer = ReplayerFactory.createReplayer(net, copyLog, mapping, true);
 					IncrementalTraceAnalyzer<?> analyzer = TraceAnalyzerFactory.createTraceAnalyzer(parameter, mapping, classifier, log, net, null);
 					long start = System.currentTimeMillis();
-					GlobalConformanceResult result = checkForGlobalConformanceWithICC(context, net, copyLog, analyzer, parameter, null, null, SEEDS[i]);
+					IncrementalConformanceResult result = checkForGlobalConformanceWithICC(context, net, copyLog, analyzer, parameter, null, null, SEEDS[i]);
 					long end = System.currentTimeMillis();
 					String out=String.join(";", 
 							Double.toString(parameter.getDelta()),Double.toString(parameter.getAlpha()),Double.toString(parameter.getEpsilon()),Double.toString(parameter.getK()),
@@ -690,7 +690,7 @@ public class Evaluation{
 					//Replayer replayer = ReplayerFactory.createReplayer(net, copyLog, mapping, true);
 					IncrementalTraceAnalyzer<?> analyzer = TraceAnalyzerFactory.createTraceAnalyzer(parameter, mapping, classifier, log, net, null);
 					long start = System.currentTimeMillis();
-					GlobalConformanceResult result = checkForGlobalConformanceWithICC(context, net, copyLog, analyzer, parameter, null, null, SEEDS[i]);
+					IncrementalConformanceResult result = checkForGlobalConformanceWithICC(context, net, copyLog, analyzer, parameter, null, null, SEEDS[i]);
 					long end = System.currentTimeMillis();
 					String out=String.join(";", 
 							Double.toString(parameter.getDelta()),Double.toString(parameter.getAlpha()),Double.toString(parameter.getEpsilon()),Double.toString(parameter.getK()),
@@ -822,7 +822,7 @@ public class Evaluation{
 					IncrementalTraceAnalyzer<?> analyzer = TraceAnalyzerFactory.createTraceAnalyzer(currSetting, mapping, classifier, copyLog, net, null);
 					long start = System.currentTimeMillis();
 					IncrementalConformanceChecker icc = new IncrementalConformanceChecker(analyzer, currSetting, SEEDS[j]);
-					GlobalConformanceResult result = checkForGlobalConformanceWithICC(context, net, copyLog, analyzer, currSetting, null, null, SEEDS[j]);
+					IncrementalConformanceResult result = checkForGlobalConformanceWithICC(context, net, copyLog, analyzer, currSetting, null, null, SEEDS[j]);
 					long end = System.currentTimeMillis();
 					long time = end-start;
 					//System.out.println("Analysis done!");
@@ -889,7 +889,7 @@ public class Evaluation{
 					IncrementalTraceAnalyzer<?> analyzer = TraceAnalyzerFactory.createTraceAnalyzer(currSetting, mapping, classifier, log, net, null);
 					long start = System.currentTimeMillis();
 					IncrementalConformanceChecker icc = new IncrementalConformanceChecker(analyzer, currSetting, SEEDS[j]);
-					GlobalConformanceResult result = checkForGlobalConformanceWithICC(context, net, copyLog, analyzer, currSetting, null, null, SEEDS[j]);
+					IncrementalConformanceResult result = checkForGlobalConformanceWithICC(context, net, copyLog, analyzer, currSetting, null, null, SEEDS[j]);
 					long end = System.currentTimeMillis();
 					long time = end-start;
 					String out = input + ";" + currSetting.getDelta() + ";" + currSetting.getAlpha() + ";" + currSetting.getEpsilon() + ";"+ currSetting.isApproximate() +";" + "external" + ";" + checker.getAlpha() +";"+
@@ -984,7 +984,7 @@ public class Evaluation{
 					//Replayer replayer = ReplayerFactory.createReplayer(net, copyLog, mapping, true);
 					IncrementalTraceAnalyzer<?> analyzer = TraceAnalyzerFactory.createTraceAnalyzer(parameter, mapping, classifier, copyLog, net, null);
 					long start = System.currentTimeMillis();
-					GlobalConformanceResult result = checkForGlobalConformanceWithICC(context, net, copyLog, analyzer, parameter, null, null, SEEDS[i]);
+					IncrementalConformanceResult result = checkForGlobalConformanceWithICC(context, net, copyLog, analyzer, parameter, null, null, SEEDS[i]);
 					long end = System.currentTimeMillis();
 					System.out.println(end-start);
 					String out=String.join(";", 
@@ -1097,7 +1097,7 @@ public class Evaluation{
 			list.add(new IccParameter(0.01, 0.99, 0.01, 0.2 , IncrementalConformanceChecker.Goals.RESOURCES, true, IncrementalConformanceChecker.Heuristics.NONALIGNING_KNOWN, false, false));
 
 			int total = repetitions*list.size();
-			GlobalConformanceResult result2 = null;
+			IncrementalConformanceResult result2 = null;
 			for(IccParameter parameter : list) {
 				for(int i=0;i<repetitions;i++) {
 					System.out.println("Resource Evaluation>"+input+" - repetition "+cnt+"/"+total);
@@ -1191,7 +1191,7 @@ public class Evaluation{
 	 * @throws ExecutionException 
 	 * @throws InterruptedException 
 	 */
-	private GlobalConformanceResult checkForGlobalConformanceWithICC(UIPluginContext context, PetrinetGraph net, XLog log,
+	private IncrementalConformanceResult checkForGlobalConformanceWithICC(UIPluginContext context, PetrinetGraph net, XLog log,
 			IncrementalTraceAnalyzer<?> analyzer, IccParameter iccParameters, QualityCheckManager internalQualityCheckManager, QualityCheckManager externalQualityCheckManager, long seed) throws AStarException, InterruptedException, ExecutionException {
 		IncrementalConformanceChecker icc = new IncrementalConformanceChecker(analyzer, iccParameters, seed);
 		return icc.apply(context, log, net,  IncrementalConformanceChecker.SamplingMode.BINOMIAL);

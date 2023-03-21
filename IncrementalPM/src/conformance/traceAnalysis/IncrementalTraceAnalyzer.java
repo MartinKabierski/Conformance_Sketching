@@ -19,7 +19,7 @@ import org.processmining.plugins.petrinet.replayresult.PNRepResult;
 import conformance.replay.ReplayerFactory;
 import nl.tue.alignment.Progress;
 import nl.tue.alignment.Replayer;
-import ressources.GlobalConformanceResult;
+import ressources.IncrementalConformanceResult;
 import ressources.IccParameter;
 import ressources.TraceAnalysisResult;
 import ressources.TraceAnalysisResultMap;
@@ -213,8 +213,8 @@ public abstract class IncrementalTraceAnalyzer<T>{
 	
 	
 
-	public GlobalConformanceResult getAnalysisResult() {
-		GlobalConformanceResult result = this.conformanceCalculator.get();
+	public IncrementalConformanceResult getAnalysisResult() {
+		IncrementalConformanceResult result = this.conformanceCalculator.get();
 		result.setCnt(this.cnt);
 		result.setApproxCalc(approximatedThenCalculated);
 		result.setTotalVariants(this.totalVariants);

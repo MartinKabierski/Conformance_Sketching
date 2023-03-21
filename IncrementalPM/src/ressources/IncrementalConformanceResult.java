@@ -6,7 +6,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
-public class GlobalConformanceResult {
+public class IncrementalConformanceResult {
 	private double fitness;
 	private Map<String,Double> deviations;
 	private Map<String,Double> absoluteDeviations;
@@ -18,8 +18,10 @@ public class GlobalConformanceResult {
 	private int approximatedVariants;
 	private int approximatedThenCalculated;
 	public double fitnessAtFirst;
+	
+	public IccParameter iccParameter;
 
-	public GlobalConformanceResult() {
+	public IncrementalConformanceResult() {
 		fitness=-1.0;
 		deviations=new HashMap<>();
 		absoluteDeviations=new HashMap<>();
@@ -31,6 +33,16 @@ public class GlobalConformanceResult {
 		this.approximatedVariants=0;
 		this.approximatedThenCalculated=0;
 		this.fitnessAtFirst=0;
+		
+		this.iccParameter = null;
+	}
+	
+	public void setIccParameter(IccParameter iccParameter) {
+		this.iccParameter = iccParameter;
+	}
+	
+	public IccParameter getIccParameter() {
+		return this.iccParameter;
 	}
 	
 	public void setApproxCalc(int value) {

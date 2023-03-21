@@ -7,7 +7,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import conformance.traceAnalysis.IncrementalConformanceCalculator;
-import ressources.GlobalConformanceResult;
+import ressources.IncrementalConformanceResult;
 
 public class ResourceDeviationConformanceCalculator implements IncrementalConformanceCalculator<Map<String,Map<String,Double>>> {
 
@@ -184,8 +184,8 @@ public class ResourceDeviationConformanceCalculator implements IncrementalConfor
 	}
 	
 	
-	public GlobalConformanceResult get() {
-		GlobalConformanceResult result = new GlobalConformanceResult();
+	public IncrementalConformanceResult get() {
+		IncrementalConformanceResult result = new IncrementalConformanceResult();
 		Map<String, Map<String, Double>> deviationsRelative=new HashMap<String, Map<String, Double>>();
 		for(String activity : this.violatingResourcesAbsolute.keySet()) {
 			deviationsRelative.put(activity, new HashMap<String,Double>());

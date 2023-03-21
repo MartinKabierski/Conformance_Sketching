@@ -1,6 +1,6 @@
 package conformance.traceAnalysis.fitness;
 import conformance.traceAnalysis.IncrementalConformanceCalculator;
-import ressources.GlobalConformanceResult;
+import ressources.IncrementalConformanceResult;
 
 public class FitnessConformanceCalculator implements IncrementalConformanceCalculator<Double>{
 	protected double fitness;
@@ -25,8 +25,8 @@ public class FitnessConformanceCalculator implements IncrementalConformanceCalcu
 		return Math.abs(oldFitness-newFitness);
 	}
 
-	public synchronized GlobalConformanceResult get() {
-		GlobalConformanceResult result = new GlobalConformanceResult();
+	public synchronized IncrementalConformanceResult get() {
+		IncrementalConformanceResult result = new IncrementalConformanceResult();
 		result.setFitness(fitness);
 		return result;
 	}

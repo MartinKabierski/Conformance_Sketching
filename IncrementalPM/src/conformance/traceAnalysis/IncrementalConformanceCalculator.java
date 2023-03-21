@@ -1,6 +1,6 @@
 package conformance.traceAnalysis;
 
-import ressources.GlobalConformanceResult;
+import ressources.IncrementalConformanceResult;
 /*
  * to keep scalability with threads, have internal state updated be synchronous, but mere reads for quuantification of change be approximative
  * i.e. not synchronous. as update only add instances, this means that quantification is always a bit more pessimistic than whats possible
@@ -9,7 +9,7 @@ import ressources.GlobalConformanceResult;
  */
 
 public interface IncrementalConformanceCalculator<T>{
-	public GlobalConformanceResult get();
+	public IncrementalConformanceResult get();
 	public double update(T conformanceResult);
 	public double quantifyChange(T traceConformanceInformation);
 }

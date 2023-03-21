@@ -9,7 +9,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.apache.commons.lang3.mutable.MutableDouble;
 
 import conformance.traceAnalysis.IncrementalConformanceCalculator;
-import ressources.GlobalConformanceResult;
+import ressources.IncrementalConformanceResult;
 
 public class DeviationConformanceCalculator implements IncrementalConformanceCalculator<Map<String, Double>>{
 	protected double cnt;
@@ -139,8 +139,8 @@ public class DeviationConformanceCalculator implements IncrementalConformanceCal
 	}
 	
 	
-	public synchronized GlobalConformanceResult get() {
-		GlobalConformanceResult result = new GlobalConformanceResult();
+	public synchronized IncrementalConformanceResult get() {
+		IncrementalConformanceResult result = new IncrementalConformanceResult();
 		Map<String, Double> deviationsRelative = new HashMap<String, Double>();
 		Map<String, Double> deviationsAbsolute = new HashMap<String, Double>();
 		for (Entry<String, Double> entry : this.deviationsAbsolute.entrySet()) {
